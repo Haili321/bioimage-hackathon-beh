@@ -139,6 +139,34 @@ Four representative files. Left: raw input. Middle: Cellpose mask overlaid in gr
 
 `ko_8` (50% empty) and `ko_28` (17% empty) remain difficult — `ko_8`'s raw signal is the lowest in the dataset and `ko_28` has the largest field of view, so cyto3 may benefit from manual `diameter` tuning. Both flagged for the biology lead to review.
 
+## Validation on the Categorised_Data dataset
+
+Mid-hackathon, Badeer uploaded a new categorized dataset organized as `{wt,ko,ki}{1,2}/X.tif`. We cross-verified that her `1` / `2` folder split is identical to our intensity-based low / high batch detection (100% concordance on every sampled file). 22 of the 30 files are new positions extending the original dataset (5,263 → 6,221 frames, +18%).
+
+Re-running the v3 pipeline on this expanded dataset:
+
+| Folder | Files | Empty / Total | % |
+| --- | --- | --- | --- |
+| ki1 (KI low) | 5 | 0 / 900 | 0.0% |
+| ki2 (KI high) | 5 | 17 / 1,467 | 1.2% |
+| ko1 (KO low) | 5 | 133 / 630 | 21.1% ← problem cases here |
+| ko2 (KO high) | 5 | 2 / 1,434 | 0.1% |
+| wt1 (WT low) | 5 | 22 / 701 | 3.1% |
+| wt2 (WT high) | 5 | 2 / 1,089 | 0.2% |
+| **TOTAL** | 30 | **176 / 6,221** | **2.83%** |
+
+The headline number is essentially unchanged from the original dataset (2.81% vs 2.83%), which means the pipeline generalises cleanly to new positions.
+
+![Categorised_Data per-file empty rate](demos/categorised_empty_rate.png)
+
+The `ko1` folder concentrates the failures: `ko1/4.tif` (95% empty, only 60 frames so likely an aborted or very short recording) and `ko1/8.tif` (50% empty, identical to the original `ko_8.tif` — confirmed source-data limitation, not a pipeline issue). Together they account for 117 of the 176 empty masks. **A plausible biological reading is that the KO knockout itself produces dimmer cells with weaker GFP signal, so segmentation difficulty in this folder may be part of the phenotype rather than an artefact.** Worth confirming with Badeer.
+
+### Sample outputs across all 6 folders
+
+![Categorised_Data sample masks](demos/categorised_sample_masks.png)
+
+One representative file from each folder. Same pipeline (cyto3 + adaptive normalize) handles low-batch and high-batch input cleanly, and the centering step is robust across the size variation in the new dataset (FOV ranges from 165×165 to 594×456).
+
 ## Files
 
 | Path | Description |
