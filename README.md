@@ -117,14 +117,27 @@ We ran three GPU iterations to handle the low-vs-high batch issue cleanly:
 | v2 | `cyto3` + 1-99 percentile normalize on every frame | Fixes low batch (ko_21 87% → 0.6%) but breaks 3 high-batch files (wt_wt25 0% → 77%, ko_28 0% → 34%). |
 | v3 | adaptive: normalize only when `p99 < 1000` | Best of both. Final hybrid output is v2 low-batch results + v3 high-batch results. |
 
-Total empty mask rate across the 5,169 frames in the dataset:
+Total empty mask rate across the 5,263 frames in the dataset:
 
 | Iteration | Empty rate | Files with >15% empty |
 | --- | --- | --- |
-| v1 | 15.2% (786 / 5169) | 7 |
-| **v3 (final)** | **2.9% (148 / 5169)** | **1** (`ko_8`) |
+| v1 | 9.7% (511 / 5263) | 5 |
+| v2 | 7.9% (416 / 5263) | 4 |
+| **v3 (final)** | **2.8% (148 / 5263)** | **2** (`ko_8`, `ko_28`) |
 
-`ko_8` remains at 50% empty even after the fix — its raw signal is the lowest in the dataset and the cell may genuinely be too dim to segment reliably. Flagged for the biology lead to review.
+### Per-file comparison
+
+![v1 v2 v3 empty rate per file](demos/v3_empty_rate_comparison.png)
+
+Sorted by v1 difficulty (worst on the left). Files in `[low]` brackets are low-batch (intensity stretched in v3), `[high]` are high-batch (raw input in v3).
+
+### v3 sample outputs
+
+![v3 sample masks](demos/v3_sample_masks.png)
+
+Four representative files. Left: raw input. Middle: Cellpose mask overlaid in green. Right: image shifted so the cell sits at the centre. Both rescued low-batch files and stable high-batch files work cleanly through the same pipeline.
+
+`ko_8` (50% empty) and `ko_28` (17% empty) remain difficult — `ko_8`'s raw signal is the lowest in the dataset and `ko_28` has the largest field of view, so cyto3 may benefit from manual `diameter` tuning. Both flagged for the biology lead to review.
 
 ## Files
 
