@@ -43,12 +43,14 @@ While inspecting the data we discovered each condition cleanly splits into two i
 
 ```
 raw .tif (T, H, W)
-  → per-frame intensity normalize (1-99 percentile stretch to full uint16)
+  → adaptive intensity normalize (only for low-batch files, p99 < 1000)
   → Cellpose cyto3 segmentation (GPU)
   → keep largest mask, fall back to last centroid if empty
   → shift image so cell sits at image center
   → save *_centered.tif (uint16) + *_mask.tif (uint8 0/255)
 ```
+
+The adaptive step is the key: low-batch files need their dynamic range stretched before Cellpose can see structures (raw signal sits in the bottom 1% of uint16), but high-batch files already span enough range that the stretch creates saturation artefacts. The decision threshold (`p99 < 1000`) cleanly separates the two batches without hardcoding filenames.
 
 ## Run
 
@@ -105,6 +107,25 @@ Stretching each frame to its 1-99 percentile range before segmentation. Now Cell
 
 ![Normalization fix](demos/normalize_demo.png)
 
+## Pipeline iterations (v1 → v2 → v3)
+
+We ran three GPU iterations to handle the low-vs-high batch issue cleanly:
+
+| Version | Strategy | Outcome |
+| --- | --- | --- |
+| v1 | `cyto` model on raw images | Works on high batch (0-4% empty). Fails on low batch (e.g. ko_8 88%, ko_21 87% empty). |
+| v2 | `cyto3` + 1-99 percentile normalize on every frame | Fixes low batch (ko_21 87% → 0.6%) but breaks 3 high-batch files (wt_wt25 0% → 77%, ko_28 0% → 34%). |
+| v3 | adaptive: normalize only when `p99 < 1000` | Best of both. Final hybrid output is v2 low-batch results + v3 high-batch results. |
+
+Total empty mask rate across the 5,169 frames in the dataset:
+
+| Iteration | Empty rate | Files with >15% empty |
+| --- | --- | --- |
+| v1 | 15.2% (786 / 5169) | 7 |
+| **v3 (final)** | **2.9% (148 / 5169)** | **1** (`ko_8`) |
+
+`ko_8` remains at 50% empty even after the fix — its raw signal is the lowest in the dataset and the cell may genuinely be too dim to segment reliably. Flagged for the biology lead to review.
+
 ## Files
 
 | Path | Description |
@@ -117,11 +138,11 @@ Stretching each frame to its 1-99 percentile range before segmentation. Now Cell
 ## Status
 
 - Data downloaded, verified, manifest built
-- Three demo notebooks running end-to-end (Multi-Otsu static, Multi-Otsu dynamics, Cellpose centering)
-- Failure mode on low-batch identified, fix in place (normalize + cyto3)
-- GPU pipeline deployed, full-dataset run takes ~17 minutes on A5000
+- Three baseline demos running end-to-end (Multi-Otsu static, Multi-Otsu dynamics, Cellpose centering)
+- Cellpose pipeline iterated v1 → v2 → v3 with adaptive normalize; 29 / 30 files now usable (only `ko_8` remains)
+- GPU pipeline deployed, full-dataset run takes ~17 minutes on an A5000
 
-Next: align with Badeer on the scientific question (what protein is GFP fused to, what genes are perturbed in KO/KI), then add nested intra-cellular layer extraction and trajectory features for the WT vs KO vs KI comparison.
+Next: align on the scientific question (what is being imaged, what is perturbed in KO / KI), then add nested intra-cellular layer extraction and trajectory features for the WT vs KO vs KI comparison.
 
 ## Open questions for Badeer
 

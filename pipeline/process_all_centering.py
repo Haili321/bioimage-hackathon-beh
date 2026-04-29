@@ -20,7 +20,9 @@ OUTPUT_DIR = Path('/dcs/pg25/u1898019/Desktop/BioImageHackathon_BEH_centered')
 MODEL_TYPE = 'cyto3'          # upgraded from 'cyto' for better low-SNR handling
 CHANNELS = [0, 0]              # single-channel grayscale
 DIAMETER = None                # let Cellpose auto-estimate
-NORM_PERCENTILES = (1, 99)     # per-frame intensity stretching to fix low-batch failures
+NORM_PERCENTILES = (1, 99)     # per-frame stretching applied only to low-batch files
+LOW_BATCH_P99_THRESHOLD = 1000 # files whose 99-th percentile is below this are treated as low-batch
+                               # (low batch p99 ~400-900, high batch p99 ~1500-3500)
 
 USE_GPU = torch.cuda.is_available()
 print(f'[setup] GPU available: {USE_GPU}', flush=True)
@@ -42,11 +44,22 @@ def normalize_frame(img: np.ndarray, percentiles=NORM_PERCENTILES) -> np.ndarray
     return (norm * 65535).astype(np.uint16)
 
 
+def is_low_batch(img4d: np.ndarray) -> bool:
+    """Decide whether this stack needs intensity stretching, based on the bulk 99-th percentile.
+    Low batch p99 is roughly 400-900, high batch is 1500-3500, so 1000 is a clean separator.
+    Subsamples for speed (we only need the rough scale).
+    """
+    sample = img4d[::5].flatten()[::100]
+    return float(np.percentile(sample, 99)) < LOW_BATCH_P99_THRESHOLD
+
+
 def process_file(input_path: Path, out_centered: Path, out_mask: Path) -> dict:
     """Process one .tif and write paired _centered/_mask files. Returns metadata."""
     img4d = tifffile.imread(input_path)
     T, H, W = img4d.shape
-    print(f'\n[{input_path.name}] T={T}, H={H}, W={W}, dtype={img4d.dtype}', flush=True)
+    needs_norm = is_low_batch(img4d)
+    print(f'\n[{input_path.name}] T={T}, H={H}, W={W}, dtype={img4d.dtype}, '
+          f'normalize={"YES (low batch)" if needs_norm else "NO  (high batch)"}', flush=True)
 
     centered = np.zeros_like(img4d)
     masks_all = np.zeros((T, H, W), dtype=np.uint8)
@@ -57,8 +70,8 @@ def process_file(input_path: Path, out_centered: Path, out_mask: Path) -> dict:
     t0 = time.time()
     for t in range(T):
         img = img4d[t]
-        # Normalize for segmentation only — keep original intensities for the centered output
-        img_for_seg = normalize_frame(img)
+        # Adaptive normalize: only stretch low-batch files (saves high-batch from saturation artefacts)
+        img_for_seg = normalize_frame(img) if needs_norm else img
         masks, _, _, _ = model.eval(img_for_seg, diameter=DIAMETER, channels=CHANNELS)
 
         if masks.max() == 0:
