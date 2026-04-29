@@ -165,7 +165,7 @@ The `ko1` folder concentrates the failures: `ko1/4.tif` (95% empty, only 60 fram
 
 ![Categorised_Data sample masks](demos/categorised_sample_masks.png)
 
-One representative file from each folder. Same pipeline (cyto3 + adaptive normalize) handles low-batch and high-batch input cleanly, and the centering step is robust across the size variation in the new dataset (FOV ranges from 165×165 to 594×456).
+One representative file from each folder. Same pipeline (cyto3 + adaptive normalize) handles low-batch and high-batch input cleanly, and the centering step is robust across the wide size variation (smallest FOV 165×165 in `ki1/7`, largest 594×456 in `ko2/ko11` and 558×507 in `ko2/ko5`).
 
 ## Lamellipodia separation, direction sweep
 
