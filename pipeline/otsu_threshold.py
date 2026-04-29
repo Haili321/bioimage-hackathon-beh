@@ -19,7 +19,7 @@ def read_tiff_stack(path):
     return img
 
 
-def align_and_apply_masks(centered_images, masks, centers, dilation_radius=5):
+def align_and_apply_masks(centered_images, masks, centers, dilation_radius=1):
     """
     Align masks to centered images using stored centroids, then apply them.
 
@@ -141,6 +141,98 @@ def separate_cell_body_lamellipodia(cleaned_images, aligned_masks):
     )
 
 
+def show_body_lamellipodia_overlays(
+    images,
+    cell_body_masks,
+    lamellipodia_masks,
+    n_cols=5
+):
+    """
+    Overlay cell body and lamellipodia on images.
+
+    Parameters:
+        images: (T, H, W)
+        cell_body_masks: (T, H, W)
+        lamellipodia_masks: (T, H, W)
+    """
+
+    n = len(images)
+    n_rows = int(np.ceil(n / n_cols))
+
+    plt.figure(figsize=(n_cols * 3, n_rows * 3))
+
+    for i in range(n):
+        img = images[i]
+        body = cell_body_masks[i]
+        lam = lamellipodia_masks[i]
+
+        # Normalize image for display
+        img_norm = (img - img.min()) / (img.max() - img.min() + 1e-8)
+
+        # RGB overlay
+        overlay = np.zeros((*img.shape, 3))
+        overlay[..., 0] = body      # red channel = cell body
+        overlay[..., 2] = lam       # blue channel = lamellipodia
+        overlay[..., 1] = img_norm * 0.6  # green = background intensity
+
+        plt.subplot(n_rows, n_cols, i + 1)
+        plt.imshow(overlay)
+        plt.title(f"Frame {i}")
+        plt.axis("off")
+
+    plt.tight_layout()
+    plt.show()
+
+import numpy as np
+
+def separate_body_lamellipodia_percentile(
+    images,
+    masks,
+    body_percentile=50
+):
+    """
+    Separate cell body vs lamellipodia using intensity percentile threshold.
+
+    Parameters:
+        images (np.ndarray): (T, H, W)
+        masks (np.ndarray): (T, H, W)
+        body_percentile (float): % of brightest pixels considered "cell body"
+
+    Returns:
+        cell_body_masks, lamellipodia_masks, thresholds
+    """
+
+    cell_body_masks = []
+    lamellipodia_masks = []
+    thresholds = []
+
+    for img, mask in zip(images, masks):
+
+        pixels = img[mask > 0]
+
+        if len(pixels) == 0:
+            cell_body = np.zeros_like(mask)
+            lam = np.zeros_like(mask)
+            thresh = 0
+
+        else:
+            # percentile threshold instead of Otsu
+            thresh = np.percentile(pixels, body_percentile)
+
+            cell_body = (img >= thresh) & mask
+            lam = (img < thresh) & mask
+
+        cell_body_masks.append(cell_body)
+        lamellipodia_masks.append(lam)
+        thresholds.append(thresh)
+
+    return (
+        np.array(cell_body_masks),
+        np.array(lamellipodia_masks),
+        thresholds
+    )
+
+
 centered_images = read_tiff_stack("data/output/wt_5/centered_stack.tif")
 masks_all = read_tiff_stack("data/output/wt_5/mask_stack.tif")
 with open("data/output/wt_5/centers.csv", "r") as file:
@@ -152,8 +244,14 @@ centers = centers[0]
 centers = [eval(x) for x in centers]
 aligned_masks, cleaned_images = align_and_apply_masks(centered_images, masks_all, centers)
 
+cell_body, lamellipodia, thresholds = separate_body_lamellipodia_percentile(cleaned_images, aligned_masks, body_percentile=40)
+#cell_body, lamellipodia, thresholds = separate_cell_body_lamellipodia(cleaned_images, aligned_masks)
 
-
-cell_body, lamellipodia, thresholds = separate_cell_body_lamellipodia(cleaned_images, aligned_masks)
-
-show_image_grid(lamellipodia[20:45])
+lower = 20
+upper = 45
+show_body_lamellipodia_overlays(
+    cleaned_images[lower:upper],
+    cell_body[lower:upper],
+    lamellipodia[lower:upper],
+    n_cols=5
+)
