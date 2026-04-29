@@ -1,6 +1,6 @@
 # BioImage Hackathon — BEH Dataset
 
-GPU-accelerated pipeline for nested cell segmentation and dynamics quantification on a 30-file GFP timelapse dataset. Built for the Warwick BioImage Analysis Hackathon (April 2026).
+GPU-accelerated pipeline for nested cell segmentation and dynamics quantification on a 30-file epiflourescense timelapse dataset. Built for the Warwick BioImage Analysis Hackathon (April 2026).
 
 **Live briefing page:** [https://www.dcs.warwick.ac.uk/~u1898019/hackathon-beh/](https://www.dcs.warwick.ac.uk/~u1898019/hackathon-beh/)
 
@@ -18,8 +18,8 @@ GPU-accelerated pipeline for nested cell segmentation and dynamics quantificatio
 | --- | --- |
 | Files | 30 (3 conditions × 10 positions) |
 | Conditions | WT (Wild-Type), KO (Knock-Out), KI (Knock-In) |
-| Modality | 2D time-lapse confocal, single channel `2-GFP` |
-| Acquisition | Zeiss confocal + Micro-Manager 2.0, 60 s frame interval |
+| Modality | 2D time-lapse epifluorescence, single channel |
+| Acquisition | Zeiss + Micro-Manager 2.0, 60 s frame interval |
 | Pixel size | ~0.318 µm/px |
 | Bit depth | 16-bit unsigned |
 | Frames per file | 67 to 360 (varies by position) |
