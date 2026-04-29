@@ -192,10 +192,13 @@ The biology lead can pick whichever overlay best matches the expected morphology
 
 ## Status
 
-- Data downloaded, verified, manifest built
+- Per-file manifests built for both datasets (original `BioImageHackathon_BEH` and the newer `Categorised_Data`)
 - Three baseline demos running end-to-end (Multi-Otsu static, Multi-Otsu dynamics, Cellpose centering)
-- Cellpose pipeline iterated v1 → v2 → v3 with adaptive normalize; 29 / 30 files now usable (only `ko_8` remains)
-- GPU pipeline deployed, full-dataset run takes ~17 minutes on an A5000
+- Cellpose pipeline iterated v1 → v2 → v3 with adaptive normalize
+- v3 generalises cleanly across datasets: 2.81% empty on the original 30-file set, 2.83% on the new 30-file Categorised_Data
+- 28 / 30 files usable on the new dataset; the two failures (`ko1/4` 95% empty and `ko1/8` 50% empty) are both in the KO low batch and may reflect inherently dimmer cells in the KO phenotype
+- GPU pipeline runs the full dataset in ~17 minutes on an A5000
+- Lamellipodia-separation prototype on the repo (Edward's percentile method + parameter sweep across both directions)
 
 Next: align on the scientific question (what is being imaged, what is perturbed in KO / KI), then add nested intra-cellular layer extraction and trajectory features for the WT vs KO vs KI comparison.
 
