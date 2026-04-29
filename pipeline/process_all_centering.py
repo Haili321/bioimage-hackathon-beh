@@ -15,8 +15,8 @@ import torch
 from cellpose import models
 from scipy.ndimage import center_of_mass, shift
 
-INPUT_DIR = Path('/dcs/pg25/u1898019/Desktop/BioImageHackathon_BEH')
-OUTPUT_DIR = Path('/dcs/pg25/u1898019/Desktop/BioImageHackathon_BEH_centered')
+INPUT_DIR = Path('/dcs/pg25/u1898019/Desktop/Categorised_Data')
+OUTPUT_DIR = Path('/dcs/pg25/u1898019/Desktop/Categorised_Data_centered')
 MODEL_TYPE = 'cyto3'          # upgraded from 'cyto' for better low-SNR handling
 CHANNELS = [0, 0]              # single-channel grayscale
 DIAMETER = None                # let Cellpose auto-estimate
