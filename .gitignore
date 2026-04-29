@@ -1,0 +1,34 @@
+# Data files (kept on shared CAMDU drive / OneDrive, not in git)
+*.tif
+*.tiff
+*.czi
+*.nd2
+*.zarr/
+
+# SLURM job artifacts
+center_*.out
+center_*.err
+joboutput_*.out
+joberror_*.err
+slurm-*.out
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+.ipynb_checkpoints/
+.venv/
+venv/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+*.swp
+
+# Cellpose model cache
+.cellpose/
