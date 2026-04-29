@@ -167,6 +167,20 @@ The `ko1` folder concentrates the failures: `ko1/4.tif` (95% empty, only 60 fram
 
 One representative file from each folder. Same pipeline (cyto3 + adaptive normalize) handles low-batch and high-batch input cleanly, and the centering step is robust across the size variation in the new dataset (FOV ranges from 165×165 to 594×456).
 
+## Lamellipodia separation, direction sweep
+
+Edward added a percentile-based separator (`pipeline/otsu_threshold.py`) that splits each cell mask into "cell body" (brighter pixels) and "lamellipodia" (dimmer pixels) using a tunable percentile threshold. To help the biology team pick the right convention before we run it on the full dataset, we ran a parameter sweep on `wt2/wt4.tif` covering both directions and three percentile values, plus a Multi-Otsu 3-class variant and a distance-transform-constrained variant.
+
+![Lamellipodia separation prototype, direction sweep](demos/lamellipodia_prototype.png)
+
+- **Red = cell body, Blue = lamellipodia** in every overlay.
+- **Top row** is Edward's original convention (brighter pixels = body).
+- **Bottom row** swaps it (brighter pixels = lamellipodia).
+- Last column on top is Multi-Otsu 3-class (body / transition / lamellipodia all separable in one shot).
+- Last column on bottom adds a spatial constraint: a pixel is only labelled lamellipodia if it is also within ~12 px of the cell boundary.
+
+The biology lead can pick whichever overlay best matches the expected morphology, which fixes the convention and the percentile value in one decision. Once chosen, the separator runs over the whole 30-file dataset in a few seconds per file.
+
 ## Files
 
 | Path | Description |
