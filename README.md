@@ -255,6 +255,65 @@ Each subplot shows 5 cells. Coloured solid lines: pairs that passed the mask-sta
 - The mask-stability filter currently rejects any pair with IoU < 0.3 — this is a conservative threshold. A handful of cells (notably `wt1/33`, `wt1/12`, `wt2/wt10`, `ko1/8`) have many frames excluded; their reported metrics are based on the surviving valid pairs.
 - No photobleaching correction yet, so intensity-based metrics may carry some imaging artefact even after the centering / size normalisation.
 
+## Cellpose self-training (Day 2 afternoon)
+
+Edward suggested fine-tuning Cellpose on our own data using v3 outputs as pseudo-ground-truth, instead of relying on hand-drawn annotations we don't have. We built a 3-stage pipeline and ran it.
+
+### Training setup
+
+```
+1. Prepare pseudo-GT: take v3 Cellpose masks, exclude ko1/4 + ko1/8
+   (known stubborn cases), filter out frames with mask-fragmentation
+   (area < 30% of per-cell median, or IoU < 0.5 with previous frame),
+   subsample every 10th frame to keep training set manageable.
+   → 586 (image, mask) pairs across 28 cells
+2. Fine-tune cyto3 with --min_train_masks 1 (single-cell masks),
+   100 epochs, SGD lr=0.05, weight_decay=1e-4, batch_size=8.
+   → 12 minutes on RTX A5000, train loss 0.23 → 0.016 (14x reduction)
+3. Re-run the v3 pipeline with the fine-tuned model on all 30 cells.
+   → Output to Categorised_Data_finetuned/, parallel to the baseline
+```
+
+### Results: 22x reduction in empty masks
+
+| | Baseline (cyto3 zero-shot) | Fine-tuned cyto3 | Improvement |
+| --- | --- | --- | --- |
+| **Total empty rate** | 176 / 6221 (2.83%) | **8 / 6221 (0.13%)** | **22×** |
+| WT empty | 1.34% | 0.06% | 20× |
+| KO empty | 6.54% | 0.24% | 27× |
+| KI empty | 0.72% | 0.08% | 9× |
+
+The two stubborn cases that resisted every previous fix are largely solved:
+
+| Cell | Baseline empty | Fine-tuned empty |
+| --- | --- | --- |
+| `ko1/4` | 57/60 (95%) | **5/60 (8%)** |
+| `ko1/8` | 60/120 (50%) | **0/120 (0%)** |
+| `ko1/16` | 15/180 (8%) | 0/180 (0%) |
+| `wt1/12` | 13/180 (7%) | 0/180 (0%) |
+| `wt1/33` | 8/81 (10%) | 0/81 (0%) |
+| `ki2/4` | 13/240 (5%) | 0/240 (0%) |
+
+Mean IoU between baseline and fine-tuned masks per cell averages **0.83-0.90** across conditions — i.e. the model still detects the same cell, but adjusts mask boundaries to be more reliably populated. It is not a different segmentation, it is a better-behaved one.
+
+![cyto3 baseline vs fine-tuned](demos/baseline_vs_finetuned_demo.png)
+
+Six representative cells, mid-frame each. **Green = baseline mask, purple = fine-tuned mask, difference column** with green/red/blue showing agreement / baseline-only / finetuned-only pixels.
+
+### Why this works
+
+The pseudo-GT is filtered v3 output. The fine-tuned model is essentially learning "produce the kinds of masks v3 produces *when v3 produces good masks*." That is enough to:
+
+- Make boundaries smoother and more consistent across consecutive frames (the mask-stability filter we added earlier rejected ~127 frames; the fine-tuned model produces fewer such frames in the first place)
+- Recognise dim cells that the off-the-shelf cyto3 missed (`ko1/8` with weak signal, `ko1/4` with truncated recording)
+- Specialise to the imaging conditions of this dataset (epifluorescence, this objective, this exposure)
+
+### Honest caveats
+
+- Self-training can amplify systematic biases in the pseudo-GT. We did not fix those biases by training on the masks they produced.
+- The 22× empty-mask reduction is on the *same dataset* the training data was drawn from. Generalisation to a held-out experiment is untested.
+- For genuine model improvement assessment, hand-drawn ground truth would still be the right reference. Self-training is a useful intermediate step, not a substitute.
+
 ## Mask comparison utility (Day 2 afternoon)
 
 Edward asked for an automated way to compare Cellpose mask coverage against a reference segmentation. We wrote a generic utility (`pipeline/compare_masks.py`) that takes any two parallel mask directories and outputs per-frame metrics:
