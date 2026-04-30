@@ -2,8 +2,10 @@ import tifffile as tiff
 import csv, math
 import matplotlib.pyplot as plt
 import numpy as np
-from scipy.ndimage import binary_dilation, shift
+from scipy.ndimage import binary_dilation, shift, binary_fill_holes
 from skimage.filters import threshold_otsu
+from skimage.morphology import binary_closing, disk
+
 
 def read_tiff_stack(path):
     """
@@ -183,7 +185,6 @@ def show_body_lamellipodia_overlays(
     plt.tight_layout()
     plt.show()
 
-import numpy as np
 
 def separate_body_lamellipodia_percentile(
     images,
@@ -233,25 +234,85 @@ def separate_body_lamellipodia_percentile(
     )
 
 
-centered_images = read_tiff_stack("data/output/wt_5/centered_stack.tif")
-masks_all = read_tiff_stack("data/output/wt_5/mask_stack.tif")
-with open("data/output/wt_5/centers.csv", "r") as file:
+
+def refine_body_and_lamellipodia(
+    cell_body_masks,
+    lamellipodia_masks,
+    closing_radius=3
+):
+    """
+    Refine existing body + lamellipodia masks:
+    - clean holes in body
+    - enforce lamellipodia = original_mask - cleaned_body
+
+    Parameters:
+        cell_body_masks (np.ndarray): (T, H, W)
+        lamellipodia_masks (np.ndarray): (T, H, W)
+        closing_radius (int): morphological smoothing strength
+
+    Returns:
+        cleaned_body
+        cleaned_lamellipodia
+    """
+
+    cleaned_body = []
+    cleaned_lam = []
+
+    selem = disk(closing_radius)
+
+    for body, lam in zip(cell_body_masks, lamellipodia_masks):
+
+        body = body.astype(bool)
+        lam = lam.astype(bool)
+
+        # --- 1. Clean body mask ---
+        body_closed = binary_closing(body, selem)
+        body_filled = binary_fill_holes(body_closed)
+
+        # --- 2. Enforce consistency ---
+        # lamellipodia should NOT overlap cleaned body
+        lam_clean = lam & ~body_filled
+
+        cleaned_body.append(body_filled)
+        cleaned_lam.append(lam_clean)
+
+    return (
+        np.array(cleaned_body),
+        np.array(cleaned_lam)
+    )
+
+path = "wt_31"
+
+centered_images = read_tiff_stack("data/output/%s/centered_stack.tif"%(path))
+masks_all = read_tiff_stack("data/output/%s/mask_stack.tif"%(path))
+with open("data/output/%s/centers.csv"%(path), "r") as file:
     r = csv.reader(file)
     centers = list(r)
+
+
 
 
 centers = centers[0]
 centers = [eval(x) for x in centers]
 aligned_masks, cleaned_images = align_and_apply_masks(centered_images, masks_all, centers)
 
-cell_body, lamellipodia, thresholds = separate_body_lamellipodia_percentile(cleaned_images, aligned_masks, body_percentile=40)
+cell_body, lamellipodia, thresholds = separate_body_lamellipodia_percentile(cleaned_images, aligned_masks, body_percentile=60)
 #cell_body, lamellipodia, thresholds = separate_cell_body_lamellipodia(cleaned_images, aligned_masks)
+
+
+cleaned_body, cleaned_lam = refine_body_and_lamellipodia(cell_body, lamellipodia, closing_radius=10)
+
 
 lower = 20
 upper = 45
 show_body_lamellipodia_overlays(
     cleaned_images[lower:upper],
-    cell_body[lower:upper],
-    lamellipodia[lower:upper],
+    cleaned_body[lower:upper],
+    cleaned_lam[lower:upper],
     n_cols=5
 )
+
+
+tiff.imwrite("data/output/%s/cell_body.tif"%(path), cleaned_body.astype('uint16'))
+tiff.imwrite("data/output/%s/lamellipodia.tif"%(path), cleaned_lam.astype('uint16'))
+tiff.imwrite("data/output/%s/cleaned_images.tif"%(path), cleaned_images.astype('uint16'))
