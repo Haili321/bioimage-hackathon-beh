@@ -456,6 +456,7 @@ python pipeline/compare_batch1_vs_batch2.py
 | `pipeline/extract_lamellipodia_2nd.py` | Lamellipodia metrics, 2nd batch |
 | `pipeline/compare_batch1_vs_batch2.py` | Side-by-side comparison: per-condition stats + figure |
 | `pipeline/plot_trajectories.py` | Generic 2x3 trajectory plot (one panel per folder) from any `trajectories.json` |
+| `models/cellpose_1777550975.949237` | Fine-tuned `cyto3` weights (26 MB). See `models/README.md` for provenance and usage. |
 | `data/categorised_data_manifest.json` | First 30-file dataset manifest |
 | `data/categorised_data_2nd_manifest.json` | Second 30-file dataset manifest (generalisation batch) |
 | `data/per_cell_summary.csv` | Lamellipodia metrics, batch 1 (30 cells) |
