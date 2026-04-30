@@ -314,6 +314,31 @@ The pseudo-GT is filtered v3 output. The fine-tuned model is essentially learnin
 - The 22× empty-mask reduction is on the *same dataset* the training data was drawn from. Generalisation to a held-out experiment is untested.
 - For genuine model improvement assessment, hand-drawn ground truth would still be the right reference. Self-training is a useful intermediate step, not a substitute.
 
+### Migration re-analysis with fine-tuned masks
+
+We re-ran the migration pipeline on the fine-tuned outputs (centroids from `Categorised_Data_finetuned/`). The clean-up of mask-fragmentation events drops noise dramatically, and the biological story sharpens:
+
+| Condition | Baseline (filtered) | Fine-tuned | Change |
+| --- | --- | --- | --- |
+| WT mean speed | 1.42 ± 0.47 μm/min | 1.03 ± 0.33 μm/min | std down |
+| KO mean speed | 1.15 ± 0.47 μm/min | 1.06 ± 0.29 μm/min | std down |
+| **KI mean speed** | 1.06 ± 0.60 μm/min | **0.68 ± 0.08 μm/min** | **std 7.5× smaller** |
+| WT persistence | 0.26 ± 0.15 | 0.31 ± 0.16 | up |
+| KO persistence | 0.35 ± 0.29 | **0.38 ± 0.17** | up, std halved |
+| KI persistence | 0.25 ± 0.16 | 0.31 ± 0.14 | up |
+
+Updated reading of the three patterns:
+
+1. **WT and KO migrate at similar speeds** (~1.0 μm/min). The original "WT fastest" interpretation was inflated by a few mask-fragmentation outliers in WT cells (`wt1/12`, `wt1/33` had artificial bursts). Once the mask noise is gone, KO cells move just as fast as WT.
+2. **KO retains the highest persistence** (0.38), now with **half the variance** (0.17 vs 0.29). Impaired adhesion still results in straighter trajectories.
+3. **KI is dramatically slower than both WT and KO** (0.68 vs 1.03/1.06 μm/min, Cohen's d > 1.4 against either). With only 0.08 μm/min std, KI cells are remarkably consistent in being slow. This is the cleanest single signal in the dataset.
+
+Biology reading: **broken protrusion-adhesion coordination (KI) is much more functionally costly than complete loss of the gene (KO)**. KO cells can still migrate at WT speed, just less manoeuvrable; KI cells barely migrate at all. Consistent with the idea that the KI point mutation produces a non-functional product that *interferes* with normal migration machinery, rather than simply being absent.
+
+![Trajectories using fine-tuned centroids](demos/migration_trajectories_finetuned.png)
+
+![Migration metrics, baseline vs fine-tuned](demos/migration_baseline_vs_finetuned.png)
+
 ## Mask comparison utility (Day 2 afternoon)
 
 Edward asked for an automated way to compare Cellpose mask coverage against a reference segmentation. We wrote a generic utility (`pipeline/compare_masks.py`) that takes any two parallel mask directories and outputs per-frame metrics:
