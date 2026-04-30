@@ -209,38 +209,50 @@ The biology lead has now confirmed the direction: **brighter pixels = lamellipod
 
 Since the v3 pipeline already saved per-frame centroids during the centering step, we can compute canonical cell-migration metrics directly from `centering_manifest.json`, with no additional GPU work required.
 
-Metrics extracted (pixel size 0.318 μm/px, frame interval 60 s, valid-only frames):
+Metrics extracted (pixel size 0.318 μm/px, frame interval 60 s):
 
-- **Mean / max speed** (μm/min)
+- **Mean / median speed** (μm/min)
 - **Total path length** (cumulative travel)
 - **Net displacement** (start to end straight line)
 - **Persistence index** (= net / total, 1 = directed motion, 0 = random walk)
 
-### Per-condition summary (N=10 each, valid-only)
+### Mask-stability filter (Day 2 afternoon)
 
-| Condition | Mean speed | Total path | Net disp. | Persistence |
-| --- | --- | --- | --- | --- |
-| **WT** | 2.16 ± 1.40 μm/min | 321 ± 187 μm | 43 ± 20 μm | 0.19 ± 0.13 |
-| **KO** | 1.41 ± 0.83 μm/min | 249 ± 145 μm | 68 ± 53 μm | 0.27 ± 0.19 |
-| **KI** | 1.19 ± 0.84 μm/min | 277 ± 205 μm | 50 ± 27 μm | 0.24 ± 0.15 |
+Edward noticed that `wt1/33` had a suspiciously high speed (5.55 μm/min). On inspection we found Cellpose was fragmenting the cell mask in some frames — the centroid would jump from a 10,000-pixel mask to a 200-pixel fragment and back, producing fake 30 μm/min "displacements". See `demos/wt1_33_diagnostic.png` and `demos/wt1_33_mask_diagnostic.png`.
+
+We added a per-pair mask-stability filter to `extract_migration.py`:
+
+- Frame valid iff mask area >= 30% of per-cell median
+- Pair valid iff both frames valid AND consecutive masks overlap with IoU >= 0.3
+
+After filtering, mean IoU during accepted pairs is 0.80, and the worst single-frame jumps (>15 μm/min) drop out of the metric — `wt1/33` now reports 1.88 μm/min instead of 5.55, in line with the rest of the WT cohort.
+
+### Per-condition summary (N=10 each, mask-stability filter applied)
+
+| Condition | Mean speed | Median speed | Total path | Net disp. | Persistence |
+| --- | --- | --- | --- | --- | --- |
+| **WT** | 1.42 ± 0.47 μm/min | 1.00 ± 0.30 μm/min | 228 ± 141 μm | 43 ± 20 μm | 0.26 ± 0.15 |
+| **KO** | 1.15 ± 0.47 μm/min | 0.89 ± 0.33 μm/min | 237 ± 152 μm | 68 ± 53 μm | **0.35** ± 0.29 |
+| **KI** | 1.06 ± 0.60 μm/min | 0.73 ± 0.14 μm/min | 242 ± 144 μm | 50 ± 27 μm | 0.25 ± 0.16 |
 
 Three coherent patterns:
 
-1. **WT migrates fastest** (2.16 μm/min vs KO 1.41 vs KI 1.19), consistent with intact protrusion/adhesion coordination supporting effective traction.
-2. **KO is slower but more persistent** (persistence 0.27 vs WT 0.19), consistent with impaired adhesion compressing path length but with less wobbling along the way.
-3. **KI is slowest with intermediate persistence**, consistent with broken protrusion-adhesion coordination being more functionally costly than complete loss of the gene.
+1. **WT migrates fastest** (1.42 μm/min vs KO 1.15 vs KI 1.06), consistent with intact protrusion / adhesion coordination supporting effective traction.
+2. **KO is slower but most persistent** (persistence 0.35 vs WT 0.26), consistent with impaired adhesion compressing path length but trajectories remaining the most directional. KO cells slip in straighter lines, perhaps because adhesion failures prevent the complex curving moves WT cells do.
+3. **KI is slowest with the lowest persistence** (1.06 μm/min, persistence 0.25), the "worst of both worlds": broken protrusion-adhesion coordination costs both speed and directionality simultaneously, more functionally damaging than complete loss of the gene.
 
 ### Trajectories per folder
 
 ![Per-cell migration trajectories, 6 folders](demos/migration_trajectories.png)
 
-Each subplot shows 5 cells. Black dot = trajectory start, coloured star = end. Equal aspect ratio across panels so paths are visually comparable.
+Each subplot shows 5 cells. Coloured solid lines: pairs that passed the mask-stability filter. Light grey dashes: rejected segments (Cellpose mask fragmentation, real motion uncertain). Black dot: start of valid trajectory. Coloured star: end. Equal aspect ratio across panels so paths are visually comparable.
 
 ### Caveats
 
 - N=10 per condition (5 cells per session × 2 imaging sessions). Variability is large; statistical tests are pending.
-- `ko1/4.tif` has 95% empty masks, so its valid-only metrics are based on 3 frames and contribute almost zero to the KO summary. Without it KO mean speed rises slightly.
+- `ko1/4.tif` has 95% empty masks, so it has zero valid pairs after filtering and contributes nothing to the KO summary.
 - Imaging session is a confound; the next analysis pass should fit a mixed-effects model with batch as a random effect and condition as a fixed effect.
+- The mask-stability filter currently rejects any pair with IoU < 0.3 — this is a conservative threshold. A handful of cells (notably `wt1/33`, `wt1/12`, `wt2/wt10`, `ko1/8`) have many frames excluded; their reported metrics are based on the surviving valid pairs.
 - No photobleaching correction yet, so intensity-based metrics may carry some imaging artefact even after the centering / size normalisation.
 
 ## Files
