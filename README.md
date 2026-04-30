@@ -236,12 +236,6 @@ Three coherent patterns:
 
 Each subplot shows 5 cells. Black dot = trajectory start, coloured star = end. Equal aspect ratio across panels so paths are visually comparable.
 
-### Three-condition comparison
-
-![Migration metrics, three-condition comparison](demos/migration_three_condition.png)
-
-Top row: 4 box plots (mean speed, max speed, net displacement, persistence). Bottom: speed-vs-persistence scatter, one cell per point. The X-marker is the per-condition centroid; visible separation supports the three patterns above.
-
 ### Caveats
 
 - N=10 per condition (5 cells per session × 2 imaging sessions). Variability is large; statistical tests are pending.
