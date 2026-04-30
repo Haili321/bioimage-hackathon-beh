@@ -7,16 +7,17 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/theme/white.css">
 <style>
-  :root { --wt: #1f77b4; --ko: #ff7f0e; --ki: #d62728; }
+  :root { --wt: #1f77b4; --ko: #ff7f0e; --ki: #d62728;
+          --badeer: #38a169; --edward: #3182ce; --haili: #d53f8c; --allspk: #4a5568; }
   .reveal section { font-size: 0.85em; }
   .reveal h1 { font-size: 1.6em; color: #2d3748; }
-  .reveal h2 { font-size: 1.2em; color: #2d3748; margin-bottom: 0.3em; }
+  .reveal h2 { font-size: 1.15em; color: #2d3748; margin-bottom: 0.3em; }
   .reveal h3 { font-size: 0.95em; color: #4a5568; margin-bottom: 0.3em; }
   .reveal .slides { text-align: left; }
   .reveal .slides > section { padding: 0 !important; }
-  .reveal table { font-size: 0.75em; margin: 0.5em auto; }
-  .reveal table th, .reveal table td { padding: 4px 10px; }
-  .reveal img { max-height: 380px; border: none; box-shadow: none; }
+  .reveal table { font-size: 0.72em; margin: 0.4em auto; }
+  .reveal table th, .reveal table td { padding: 3px 9px; }
+  .reveal img { max-height: 360px; border: none; box-shadow: none; }
   .reveal .meta { font-size: 0.65em; color: #718096; }
   .badge { display: inline-block; padding: 1px 7px; border-radius: 3px; color: white; font-weight: bold; font-size: 0.85em; }
   .badge-wt { background: var(--wt); }
@@ -24,71 +25,108 @@
   .badge-ki { background: var(--ki); }
   .ki-strong { color: var(--ki); font-weight: bold; }
   .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 1em; align-items: center; }
-  .stat { text-align: center; padding: 0.5em; background: #f7fafc; border-radius: 6px; }
-  .stat .num { font-size: 1.8em; font-weight: bold; color: #2d3748; }
-  .stat .label { font-size: 0.75em; color: #4a5568; }
-  .reveal ul li { margin: 0.2em 0; }
+  .stat { text-align: center; padding: 0.45em; background: #f7fafc; border-radius: 6px; }
+  .stat .num { font-size: 1.6em; font-weight: bold; color: #2d3748; }
+  .stat .label { font-size: 0.72em; color: #4a5568; }
+  .reveal ul li { margin: 0.18em 0; }
   .reveal section.title-slide { text-align: center; }
-  .reveal section.title-slide h1 { font-size: 2em; }
-  .reveal blockquote { background: #fffaf0; border-left: 4px solid var(--ki); padding: 0.5em 1em; font-style: normal; box-shadow: none; }
-  .arrow { font-size: 1.4em; color: var(--ki); margin: 0 0.3em; }
-  .footer-note { position: absolute; bottom: 12px; right: 24px; font-size: 0.55em; color: #a0aec0; }
+  .reveal section.title-slide h1 { font-size: 1.9em; }
+  .reveal blockquote { background: #fffaf0; border-left: 4px solid var(--ki); padding: 0.4em 1em; font-style: normal; box-shadow: none; }
+  .speaker {
+    position: absolute; top: -8px; right: -8px; z-index: 10;
+    padding: 4px 12px; border-radius: 14px;
+    font-size: 0.62em; font-weight: bold; color: white;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+    letter-spacing: 0.02em;
+  }
+  .speaker-badeer { background: var(--badeer); }
+  .speaker-edward { background: var(--edward); }
+  .speaker-haili { background: var(--haili); }
+  .speaker-all    { background: var(--allspk); }
+  .speaker-cs     { background: linear-gradient(90deg, var(--edward) 50%, var(--haili) 50%); }
 </style>
 </head>
 <body>
 <div class="reveal">
 <div class="slides">
 
-<!-- ===== Slide 1: Title ===== -->
+<!-- ===== Slide 1: Title (all 3) ===== -->
 <section class="title-slide">
+  <span class="speaker speaker-all">all three</span>
   <h1>BioImage Hackathon BEH</h1>
-  <h2 style="color: var(--ki); margin-top: 1em;">A point mutation that tries harder and fails more</h2>
-  <p style="margin-top: 1.5em;">Cell migration analysis pipeline + cross-batch validation<br>on 60 GFP-Arp2/3 time-lapse recordings.</p>
-  <p class="meta" style="margin-top: 2em;">Haili Yuan, Edward Offord, Badeer Ummat<br>Warwick CAMDU &middot; 2026-04-29 to 05-01</p>
+  <h2 style="color: var(--ki); margin-top: 0.8em;">A point mutation that tries harder and fails more</h2>
+  <p style="margin-top: 1.2em;">Cell migration analysis pipeline + cross-batch validation<br>on 60 GFP-Arp2/3 time-lapse recordings.</p>
+  <p style="margin-top: 1.5em; font-size: 0.95em;">
+    <span style="background: var(--badeer); color: white; padding: 4px 12px; border-radius: 4px; margin: 0 4px;">🧬 Badeer Ummat &middot; biology</span>
+    <span style="background: var(--edward); color: white; padding: 4px 12px; border-radius: 4px; margin: 0 4px;">🛠️ Edward Offord &middot; CS</span>
+    <span style="background: var(--haili); color: white; padding: 4px 12px; border-radius: 4px; margin: 0 4px;">📈 Haili Yuan &middot; CS</span>
+  </p>
+  <p class="meta" style="margin-top: 1.5em;">Warwick CAMDU &middot; 2026-04-29 to 05-01</p>
 </section>
 
-<!-- ===== Slide 2: Setup ===== -->
+<!-- ===== Slide 2: Biology + question (Badeer) ===== -->
 <section>
-  <h2>Setup</h2>
+  <span class="speaker speaker-badeer">🧬 Badeer &middot; intro</span>
+  <h2>The biology: a gene that coordinates pushing and gripping</h2>
   <div class="two-col">
     <div>
-      <ul>
-        <li><strong>Dataset:</strong> 30 time-lapse recordings, 6,221 frames, 1.4 GB</li>
-        <li><strong>Modality:</strong> 2D epifluorescence, GFP-Arp2/3, 0.318 &micro;m/px, 60s/frame</li>
-        <li><strong>Three conditions:</strong>
-          <ul>
-            <li><span class="badge badge-wt">WT</span> wild-type, normal genome</li>
-            <li><span class="badge badge-ko">KO</span> knock-out, gene deleted</li>
-            <li><span class="badge badge-ki">KI</span> knock-in, point mutation in the same gene</li>
-          </ul>
-        </li>
-        <li><strong>Biology:</strong> the gene coordinates cell protrusion + cell adhesion. Both KO and KI break the coordination, but in different ways.</li>
-      </ul>
+      <p><strong>Cell migration is a four-step process:</strong></p>
+      <ol style="font-size: 0.9em;">
+        <li>Push the front edge forward (lamellipodium).</li>
+        <li>Anchor the leading edge to the surface.</li>
+        <li>Generate pulling force.</li>
+        <li>Release the rear.</li>
+      </ol>
+      <p><strong>The gene we perturb</strong> coordinates steps 1 and 2: it links protrusion to substrate adhesion. Without it, the cell can still try to push, but the push and the grip stop happening together.</p>
+      <p><strong>The marker:</strong> GFP fused to <strong>Arp2/3</strong>, the protein complex that builds the lamellipodium. Brighter pixels at the cell edge = more push machinery being recruited.</p>
     </div>
     <div>
-      <div class="stat" style="margin-bottom: 0.5em;"><div class="num">30</div><div class="label">cells</div></div>
-      <div class="stat" style="margin-bottom: 0.5em;"><div class="num">6,221</div><div class="label">frames (batch 1)</div></div>
-      <div class="stat"><div class="num">2</div><div class="label">imaging sessions per condition</div></div>
+      <h3>Three conditions, 30 cells</h3>
+      <ul>
+        <li><span class="badge badge-wt">WT</span> wild type. The gene works.</li>
+        <li><span class="badge badge-ko">KO</span> knock-out. The gene is fully deleted.</li>
+        <li><span class="badge badge-ki">KI</span> knock-in. The gene is replaced by a single-amino-acid point-mutation version.</li>
+      </ul>
+      <blockquote style="margin-top: 1em; font-size: 0.85em;">
+        <strong>The question:</strong> does the KI point mutation behave the same as a complete deletion (KO), or does swapping one amino acid produce a phenotype of its own?
+      </blockquote>
+      <p class="meta">2D epifluorescence, 0.318 &micro;m/px, 60 s/frame, single channel, 16-bit. Two imaging sessions per condition.</p>
     </div>
   </div>
 </section>
 
-<!-- ===== Slide 3: Pipeline journey ===== -->
+<!-- ===== Slide 3: Training process (Edward) ===== -->
 <section>
-  <h2>Pipeline journey: 75x reduction in failures</h2>
+  <span class="speaker speaker-edward">🛠️ Edward &middot; pipeline + training</span>
+  <h2>Pipeline journey: 75&times; reduction in segmentation failures</h2>
   <table>
     <tr><th>Stage</th><th>What changed</th><th>Empty mask rate</th></tr>
-    <tr><td>v1 (Day 1)</td><td>Cellpose <code>cyto</code>, raw images</td><td>9.7%</td></tr>
-    <tr><td>v2 (Day 1)</td><td><code>cyto3</code> + 1-99 percentile normalize all frames</td><td>7.9% (high-batch regression)</td></tr>
-    <tr><td>v3 (Day 1)</td><td><strong>Adaptive normalize</strong>: only stretch low-batch files (p99 &lt; 1000)</td><td>2.83%</td></tr>
-    <tr><td><strong>fine-tuned (Day 2)</strong></td><td><strong>Self-trained <code>cyto3</code> on filtered v3 outputs</strong> (586 pseudo-GT pairs, no hand-drawn data)</td><td><strong class="ki-strong">0.13%</strong></td></tr>
+    <tr><td>v1</td><td>Cellpose <code>cyto</code>, raw images</td><td>9.7%</td></tr>
+    <tr><td>v2</td><td><code>cyto3</code> + 1-99 percentile normalize on every frame</td><td>7.9% (high-batch regression)</td></tr>
+    <tr><td>v3</td><td><strong>Adaptive normalize</strong>: per-stack p99 detector decides whether to stretch (low batch yes, high batch no)</td><td>2.83%</td></tr>
+    <tr><td><strong>fine-tuned</strong></td><td><strong>Self-trained <code>cyto3</code></strong> on 586 filtered v3 outputs (no hand-drawn ground truth)</td><td><strong class="ki-strong">0.13%</strong></td></tr>
   </table>
-  <p style="margin-top: 1em;"><strong>12 minutes</strong> on RTX A5000 to fine-tune. <strong>10 minutes</strong> to re-run inference on 30 cells.</p>
-  <p class="meta">The self-training step matters most: it teaches Cellpose this dataset family's shape consensus, not generic cell shapes.</p>
+  <div class="two-col" style="margin-top: 0.6em;">
+    <div>
+      <h3>How the self-training works</h3>
+      <ol style="font-size: 0.85em;">
+        <li>Run v3 on all frames.</li>
+        <li>Filter: keep frames where mask area &ge; 30% of per-cell median <strong>and</strong> IoU &ge; 0.5 with previous frame. Drop the 2 worst files (<code>ko1/4</code> 95% empty, <code>ko1/8</code> 50% empty).</li>
+        <li>Treat the surviving 586 (frame, mask) pairs as pseudo-ground-truth.</li>
+        <li>Fine-tune <code>cyto3</code> for 100 epochs on those pairs.</li>
+      </ol>
+    </div>
+    <div>
+      <div class="stat" style="margin-bottom: 0.4em;"><div class="num">12 min</div><div class="label">fine-tune on RTX A5000</div></div>
+      <div class="stat" style="margin-bottom: 0.4em;"><div class="num">10 min</div><div class="label">re-run inference on 30 cells</div></div>
+      <div class="stat"><div class="num">26 MB</div><div class="label">final weights file (shipped on GitHub)</div></div>
+    </div>
+  </div>
 </section>
 
-<!-- ===== Slide 4: Finding 1 - migration ===== -->
+<!-- ===== Slide 4: Migration trajectories (Haili) ===== -->
 <section>
+  <span class="speaker speaker-haili">📈 Haili &middot; trajectories</span>
   <h2>Finding 1: KI cells migrate <span class="ki-strong">35% slower</span></h2>
   <div class="two-col">
     <div>
@@ -98,23 +136,25 @@
         <tr><td><span class="badge badge-ko">KO</span> (N=10)</td><td>1.06 &plusmn; 0.29</td></tr>
         <tr><td><span class="badge badge-ki">KI</span> (N=10)</td><td><strong>0.68 &plusmn; 0.08</strong></td></tr>
       </table>
-      <p style="font-size: 0.8em;"><strong>Cohen's d:</strong></p>
-      <ul style="font-size: 0.8em;">
-        <li>KI vs WT: <strong>-1.40</strong> (very large)</li>
-        <li>KI vs KO: <strong>-1.68</strong> (very large)</li>
+      <p style="font-size: 0.82em; margin-top: 0.4em;"><strong>Cohen's d:</strong> KI vs WT <strong>-1.40</strong>, KI vs KO <strong>-1.68</strong> (very large effects).</p>
+      <p style="margin-top: 0.6em;">KO migrates at WT speed. Only KI slows down. The point mutation breaks something the complete deletion does not.</p>
+      <h3 style="margin-top: 0.6em;">Two filters that matter</h3>
+      <ul style="font-size: 0.82em;">
+        <li><strong>Mask-stability filter:</strong> per-pair frames where IoU &lt; 0.3 or mask area collapses are rejected. Caught a fragmentation artefact in <code>wt1/33</code> that had inflated speed by 5&times;.</li>
+        <li><strong>Persistence cap at 1.0</strong> (geometric upper bound).</li>
       </ul>
-      <p class="meta" style="margin-top: 1em;">KO cells migrate at WT speed.<br>Only KI cells slow down dramatically.</p>
     </div>
     <div style="text-align: center;">
       <img src="../migration_trajectories_finetuned.png" alt="Migration trajectories, batch 1" style="max-height: 360px;">
-      <p class="meta">30 cells across 6 folders. KI panels (right column) cover the least ground.</p>
+      <p class="meta">Per-cell trajectories, 30 cells across 6 folders. KI panels (right column) cover noticeably less ground.</p>
     </div>
   </div>
 </section>
 
-<!-- ===== Slide 5: Finding 2 - lamellipodia ===== -->
+<!-- ===== Slide 5: Lamellipodia + dominant-negative (Haili) ===== -->
 <section>
-  <h2>Finding 2: KI cells <span class="ki-strong">over-polarise Arp2/3</span> to the leading edge</h2>
+  <span class="speaker speaker-haili">📈 Haili &middot; finding 2 + biology reading</span>
+  <h2>Finding 2: KI <span class="ki-strong">over-polarises Arp2/3</span> at the leading edge</h2>
   <div class="two-col">
     <div>
       <table>
@@ -123,51 +163,37 @@
         <tr><td><span class="badge badge-ko">KO</span></td><td>1.47 &plusmn; 0.45</td></tr>
         <tr><td><span class="badge badge-ki">KI</span></td><td><strong>1.83 &plusmn; 0.33</strong></td></tr>
       </table>
-      <p style="font-size: 0.8em;"><strong>Cohen's d:</strong></p>
-      <ul style="font-size: 0.8em;">
-        <li>KI vs WT: <strong>+0.90</strong> (large)</li>
-        <li>KI vs KO: <strong>+0.85</strong> (large)</li>
-      </ul>
-      <p class="meta" style="margin-top: 1em;">Brighter pixels inside the cell mask = more Arp2/3 = lamellipodia push machinery.<br>KI cells concentrate Arp2/3 at the edge more strongly than WT or KO.</p>
+      <p style="font-size: 0.82em; margin-top: 0.4em;"><strong>Cohen's d:</strong> KI vs WT <strong>+0.90</strong>, KI vs KO <strong>+0.85</strong>.</p>
+      <p style="margin-top: 0.5em;">Per cell, brighter pixels inside the mask (above the per-frame median) are treated as lamellipodia. KI cells push <strong>more</strong> Arp2/3 to the edge than WT or KO.</p>
     </div>
-    <div style="text-align: center;">
-      <img src="../lamellipodia_three_condition.png" alt="Lamellipodia ratio per condition" style="max-height: 360px;">
+    <div>
+      <blockquote style="font-size: 0.95em;">
+        <strong>Combined biology reading:</strong> KI cells push the front edge <em>harder</em> (more Arp2/3 polarisation, finding 2) yet move 35% <em>less</em> (finding 1). Effort goes in, locomotion does not come out.
+      </blockquote>
+      <p style="margin-top: 0.6em;">This is what "broken protrusion-adhesion coordination" predicts: the lamellipodium activates, but the cell cannot anchor or generate traction, so the push wastes energy.</p>
+      <p style="font-weight: bold; color: var(--ki); margin-top: 0.5em;">Dominant-negative reading: a broken-coordination mutation is functionally <em>more</em> costly than completely deleting the gene.</p>
     </div>
   </div>
 </section>
 
-<!-- ===== Slide 6: Combined biology - dominant-negative ===== -->
+<!-- ===== Slide 6: Generalisation (Edward + Haili) ===== -->
 <section>
-  <h2>Together: KI tries harder, fails more</h2>
-  <blockquote style="font-size: 1.05em; margin: 1em 0;">
-    KI cells <strong>push more strongly</strong> at the leading edge (Arp2/3 polarisation 1.83 vs 1.5 in WT or KO), yet they <strong>migrate 35% slower</strong> than either WT or KO. Translation does not match intent.
-  </blockquote>
-  <p style="margin-top: 1em;">This is exactly what "broken protrusion-adhesion coordination" predicts:</p>
-  <ul>
-    <li>The lamellipodium machinery activates more strongly than normal.</li>
-    <li>But the cell cannot generate traction or anchor the leading edge to the substrate.</li>
-    <li>Effort goes in, locomotion does not come out.</li>
-  </ul>
-  <p style="margin-top: 1em; font-weight: bold; color: var(--ki);">Dominant-negative reading: a broken-coordination mutation is more functionally costly than a complete deletion of the gene.</p>
-  <p class="meta">The KI point-mutation product appears to <em>interfere</em> with the migration machinery rather than simply being absent.</p>
-</section>
-
-<!-- ===== Slide 7: Generalisation test (the killer) ===== -->
-<section>
-  <h2>Generalisation: same model on a fresh batch of 30 cells</h2>
+  <span class="speaker speaker-cs">🛠️📈 Edward &amp; Haili &middot; generalisation</span>
+  <h2>Same model, fresh batch of 30 cells: pipeline and findings both hold up</h2>
   <div class="two-col">
     <div>
-      <p>Mid-hackathon a second upload of <strong>30 fresh cells</strong> arrived (5,862 new frames, same 6 categories). The fine-tuned model has <strong>never seen these cells</strong>. Re-ran the entire pipeline with no retraining.</p>
+      <p>Mid-hackathon a second upload arrived: <strong>30 fresh cells, 5,862 frames, same 6 categories</strong>. The fine-tuned model has never seen these cells. We re-ran the entire pipeline (segmentation, centering, migration, lamellipodia) with <strong>no retraining and no parameter changes</strong>.</p>
 
-      <table style="margin-top: 0.8em;">
+      <table style="margin-top: 0.6em;">
         <tr><th>Metric</th><th>Batch 1</th><th>Batch 2</th></tr>
         <tr><td>Empty-mask rate</td><td>0.13%</td><td><strong>1.28%</strong></td></tr>
         <tr><td><span class="badge badge-ki">KI</span> migration speed</td><td>0.68 &plusmn; 0.08</td><td><strong>0.72 &plusmn; 0.10</strong></td></tr>
-        <tr><td><span class="badge badge-ki">KI</span> lam/cyto ratio</td><td><strong>1.827</strong></td><td><strong>1.830</strong></td></tr>
+        <tr><td><span class="badge badge-ki">KI</span> lam/cyto mean</td><td><strong>1.827</strong></td><td><strong>1.830</strong></td></tr>
         <tr><td>Cohen's d KI vs WT (mig)</td><td>-1.40</td><td><strong>-1.22</strong></td></tr>
       </table>
 
-      <p style="margin-top: 0.8em;"><strong class="ki-strong">Both findings reproduce</strong> on independent cells. KI lam/cyto means agree within 0.003.</p>
+      <p style="margin-top: 0.6em;"><strong class="ki-strong">Both findings reproduce</strong> on independent cells. The KI lam/cyto means agree within 0.003 across batches.</p>
+      <p class="meta">Pipeline + fine-tuned weights generalise. Data-processing decisions (adaptive normalize, mask-stability filter, percentile=50 split) carry over without tuning.</p>
     </div>
     <div style="text-align: center;">
       <img src="../migration_trajectories_2nd.png" alt="Trajectories on the fresh batch" style="max-height: 360px;">
@@ -176,45 +202,48 @@
   </div>
 </section>
 
-<!-- ===== Slide 8: Tools + reproducibility ===== -->
+<!-- ===== Slide 7: Tools (Edward) ===== -->
 <section>
-  <h2>Tools we built (drop-in for future projects)</h2>
+  <span class="speaker speaker-edward">🛠️ Edward &middot; reusable tools</span>
+  <h2>Drop-in pieces for future projects</h2>
   <ul>
-    <li><strong>Adaptive normalize:</strong> per-stack p99 detector decides whether to stretch. Fixes the low-batch failure without breaking the high-batch images.</li>
-    <li><strong>Self-training pipeline:</strong> filter v3 outputs by mask area + per-frame IoU, retrain <code>cyto3</code> on the filtered pseudo-GT. No hand-drawn labels needed.</li>
-    <li><strong>Mask-stability filter:</strong> rejects per-pair frames where the mask area collapses or IoU drops &lt; 0.3. Caught a single-cell artefact (<code>wt1/33</code>) that had inflated migration speed by 5x.</li>
-    <li><strong>Generic <code>compare_masks.py</code>:</strong> IoU, Dice, boundary IoU, Hausdorff 95, centroid distance. Drop in any reference masks (hand-drawn or otherwise).</li>
-    <li><strong>Generic <code>plot_trajectories.py</code>:</strong> 2x3 panel figure from any <code>trajectories.json</code>.</li>
+    <li><strong>Adaptive normalize:</strong> per-stack p99 detector decides whether to stretch. Fixes low-batch failure without breaking high-batch images. 100% concordance with the dataset's <code>1</code>/<code>2</code> folder labels.</li>
+    <li><strong>Self-training pipeline:</strong> filter v3 outputs by mask area + IoU, retrain <code>cyto3</code> on the surviving pairs. No hand-drawn labels required.</li>
+    <li><strong>Mask-stability filter:</strong> rejects per-pair frames where IoU &lt; 0.3 or area drops below 30% of per-cell median. Caught the <code>wt1/33</code> fragmentation artefact.</li>
+    <li><strong>Generic <code>compare_masks.py</code>:</strong> IoU, Dice, boundary IoU, Hausdorff 95, centroid distance. Drop in any reference masks (hand-drawn or otherwise) and get a per-frame comparison.</li>
+    <li><strong>Generic <code>plot_trajectories.py</code>:</strong> 2&times;3 panel figure from any <code>trajectories.json</code>. Same script ran on batch 1 and batch 2.</li>
   </ul>
-  <p style="margin-top: 0.8em;"><strong>Reproducible:</strong> all code, manifests, processed outputs, and the 26 MB fine-tuned weights are in the public repo.</p>
-  <p class="meta" style="margin-top: 0.4em;"><a href="https://github.com/Haili321/bioimage-hackathon-beh">github.com/Haili321/bioimage-hackathon-beh</a></p>
+  <p style="margin-top: 0.7em;"><strong>Reproducible:</strong> all code, manifests, processed CSV outputs, and the 26 MB fine-tuned weights are in the public repo.</p>
+  <p class="meta" style="margin-top: 0.3em;"><a href="https://github.com/Haili321/bioimage-hackathon-beh">github.com/Haili321/bioimage-hackathon-beh</a></p>
 </section>
 
-<!-- ===== Slide 9: Caveats + future ===== -->
+<!-- ===== Slide 8: Caveats + future (all) ===== -->
 <section>
+  <span class="speaker speaker-all">all three</span>
   <h2>Honest caveats</h2>
   <ul>
-    <li><strong>Sample size:</strong> N=10 cells per condition per batch. Effect sizes are large but formal mixed-effects ANOVA with batch as a random effect is still pending.</li>
+    <li><strong>Sample size:</strong> N=10 cells per condition per batch. Effect sizes are large but a formal mixed-effects ANOVA with batch as a random effect is still pending.</li>
     <li><strong>No hand-drawn ground truth:</strong> the fine-tuned model learned the v3 consensus shape, not a real reference. <code>compare_masks.py</code> is ready to swap in real annotations when they exist.</li>
-    <li><strong>One stubborn case:</strong> <code>ko1/7</code> still failed at 28.3% empty (30 of 106 frames) on the fresh batch. Worth a manual look: bad recording, or a genuine phenotype?</li>
+    <li><strong>One stubborn case:</strong> <code>ko1/7</code> still failed at 28.3% empty (30 of 106 frames) on the fresh batch. Worth a manual look: bad recording, or genuine phenotype?</li>
     <li><strong>Photobleaching:</strong> not corrected. Absolute intensities should be read with caution. Ratios (lam/cyto) are partially robust because both populations decay together.</li>
   </ul>
-  <h2 style="margin-top: 0.8em;">Next steps</h2>
+  <h2 style="margin-top: 0.6em;">Next steps</h2>
   <ul>
-    <li>Mixed-effects model with batch as random effect (give p-values rather than effect sizes alone).</li>
-    <li>Photobleaching correction.</li>
+    <li>Mixed-effects model with batch as random effect (deliver p-values, not just effect sizes).</li>
+    <li>Photobleaching correction for absolute intensity.</li>
     <li>Three-layer split (body / transition / lamellipodia) if biology team wants finer granularity.</li>
-    <li>napari interactive viewer for the biology team to browse cells frame by frame.</li>
+    <li>napari interactive viewer for the biology team to browse cells frame-by-frame.</li>
   </ul>
 </section>
 
-<!-- ===== Slide 10: Closing ===== -->
+<!-- ===== Slide 9: Closing + Q&A ===== -->
 <section class="title-slide">
+  <span class="speaker speaker-all">all three</span>
   <h1>Thank you</h1>
   <p style="margin-top: 1em;">Briefing: <a href="https://www.dcs.warwick.ac.uk/~u1898019/hackathon-beh/">www.dcs.warwick.ac.uk/~u1898019/hackathon-beh/</a></p>
   <p>GitHub: <a href="https://github.com/Haili321/bioimage-hackathon-beh">github.com/Haili321/bioimage-hackathon-beh</a></p>
-  <p style="margin-top: 1.5em; font-style: italic; color: #4a5568;">17+ commits, 3 contributors, fine-tuned weights shipped.</p>
-  <p style="margin-top: 2em; font-size: 1.4em; color: var(--ki);">Questions?</p>
+  <p style="margin-top: 1.5em; font-style: italic; color: #4a5568;">17+ commits, 3 contributors, fine-tuned weights and slides shipped.</p>
+  <p style="margin-top: 1.5em; font-size: 1.4em; color: var(--ki);">Questions?</p>
 </section>
 
 </div>
