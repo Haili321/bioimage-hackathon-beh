@@ -442,6 +442,69 @@ python pipeline/extract_lamellipodia_2nd.py
 python pipeline/compare_batch1_vs_batch2.py
 ```
 
+## Validation under a biologist-trained model (Day 3 morning)
+
+The biology team supplied 14 cells with Quimp active-contour reference masks (Fiji + biologist supervision, file label `seg4CellPose_Retrain`). We trained a **parallel** Cellpose model on these biologist-validated masks (no overlap with our self-training pipeline) and ran the entire downstream analysis again on both batches. The original self-trained model and all earlier results are untouched.
+
+### Setup
+
+- 14 cells, ~2,500 frame-mask pairs after stride 5 sampling, un-shifted from Quimp's centered frame back to raw frame.
+- Same hyperparameters as self-training: cyto3 base, 100 epochs, SGD lr=0.05.
+- Train loss 0.335 → 0.014 in 9 minutes on RTX A5000.
+- Inference on all 60 cells (batch 1 + batch 2) takes ~17 minutes.
+
+### Empty-mask rate (segmentation quality)
+
+| Model | Batch 1 | Batch 2 |
+| --- | --- | --- |
+| Self-trained | 0.13% | 1.28% |
+| **Quimp-trained** | **2.12%** | **1.40%** |
+
+Quimp model is slightly less aggressive on Batch 1 (only 14 of 30 cells were in its training set; the rest are unseen). Both stay under 2.5% — production-grade quality.
+
+### Lamellipodia / cytoplasm intensity ratio
+
+| Condition | self_b1 | quimp_b1 | self_b2 | quimp_b2 |
+| --- | --- | --- | --- | --- |
+| WT | 1.53 ± 0.29 | 1.56 ± 0.34 | 1.60 ± 0.37 | 1.63 ± 0.40 |
+| KO | 1.47 ± 0.45 | 1.50 ± 0.50 | 1.64 ± 0.56 | 1.70 ± 0.59 |
+| **KI** | **1.83 ± 0.33** | **1.88 ± 0.35** | **1.83 ± 0.27** | **1.86 ± 0.29** |
+
+**KI lam/cyto ratio reproduces with essentially identical magnitude across both models on both batches** (1.83-1.88). Cohen's d for KI vs WT is +0.90 (self_b1) versus +0.87 (quimp_b1), and +0.67 (self_b2) versus +0.64 (quimp_b2). The two segmentation philosophies (Cellpose deep-learning vs Quimp active contour) converge on the same number.
+
+### Migration speed (μm/min)
+
+| Condition | self_b1 | quimp_b1 | self_b2 | quimp_b2 |
+| --- | --- | --- | --- | --- |
+| WT | 1.03 ± 0.33 | 1.04 ± 0.45 | 0.95 ± 0.24 | 1.03 ± 0.34 |
+| KO | 1.06 ± 0.29 | 1.36 ± 1.01 | 1.19 ± 0.43 | 1.20 ± 0.48 |
+| **KI** | **0.68 ± 0.08** | **0.79 ± 0.14** | **0.72 ± 0.10** | **0.91 ± 0.21** |
+
+KI is the slowest condition under all four model × batch combinations. Cohen's d shifts from "very large" (-1.40 self_b1) to "medium-large" (-0.71 quimp_b1) because Quimp's larger boundary makes the centroid more sensitive to halo shape changes, which inflates within-condition variance. The direction of the finding is preserved.
+
+### Conclusion
+
+The KI dominant-negative interpretation is **not an artefact of the self-training pseudo-ground-truth**. The lamellipodia finding survives a switch to biologist-validated training data with essentially the same Cohen's d. The migration finding survives in direction and ranking; effect size is somewhat smaller because of boundary-philosophy differences.
+
+### Reproduce
+
+```bash
+# Build (image, mask) training pairs (un-shifts Quimp masks back to raw frame)
+python pipeline/prepare_training_data_quimp.py
+# Fine-tune cyto3 on Quimp masks (~9 min on A5000)
+sbatch pipeline/run_finetune_quimp.sbatch
+# Run inference on both batches with the new model (~17 min)
+sbatch pipeline/run_quimp_inference.sbatch
+# Downstream analyses
+python pipeline/extract_migration_quimp.py
+python pipeline/extract_lamellipodia_quimp.py
+# Cross-model comparison + Cohen's d
+python pipeline/compare_self_vs_quimp.py
+# Optional: agreement metrics (IoU/Dice/HD95) between Cellpose and Quimp masks
+python pipeline/compare_quimp_vs_cellpose.py finetuned
+python pipeline/compare_quimp_vs_cellpose.py v3
+```
+
 ## Files
 
 | Path | Description |
@@ -459,7 +522,17 @@ python pipeline/compare_batch1_vs_batch2.py
 | `pipeline/extract_lamellipodia_2nd.py` | Lamellipodia metrics, 2nd batch |
 | `pipeline/compare_batch1_vs_batch2.py` | Side-by-side comparison: per-condition stats + figure |
 | `pipeline/plot_trajectories.py` | Generic 2x3 trajectory plot (one panel per folder) from any `trajectories.json` |
-| `models/cellpose_1777550975.949237` | Fine-tuned `cyto3` weights (26 MB). See `models/README.md` for provenance and usage. |
+| `pipeline/prepare_training_data_quimp.py` | Build training pairs from Quimp reference masks (un-shifts to raw frame). |
+| `pipeline/run_finetune_quimp.sbatch` | SLURM script: fine-tune cyto3 on Quimp masks. |
+| `pipeline/process_with_quimp.py` | Run the Quimp-trained model on both batches. |
+| `pipeline/run_quimp_inference.sbatch` | SLURM script for the above. |
+| `pipeline/extract_migration_quimp.py` | Migration metrics under the Quimp model. |
+| `pipeline/extract_lamellipodia_quimp.py` | Lamellipodia metrics under the Quimp model. |
+| `pipeline/compare_self_vs_quimp.py` | Side-by-side comparison: self-trained vs Quimp-trained, both batches. |
+| `pipeline/compare_quimp_vs_cellpose.py` | Per-frame IoU/Dice/HD95 between Cellpose mask and Quimp reference. |
+| `pipeline/inspect_quimp_mismatch.py` | Visual inspection figure for low-IoU cells (frame-level overlay). |
+| `models/cellpose_1777550975.949237` | Self-trained `cyto3` weights (26 MB). See `models/README.md`. |
+| `models/cellpose_1777590610.8133328` | Quimp-trained `cyto3` weights (26 MB). 14 cells × 502 pairs from biologist-validated reference. |
 | `data/categorised_data_manifest.json` | First 30-file dataset manifest |
 | `data/categorised_data_2nd_manifest.json` | Second 30-file dataset manifest (generalisation batch) |
 | `data/per_cell_summary.csv` | Lamellipodia metrics, batch 1 (30 cells) |

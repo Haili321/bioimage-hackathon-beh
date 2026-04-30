@@ -1,10 +1,11 @@
 # Fine-tuned Cellpose model
 
-## File
+## Files
 
 | File | Size | Description |
 | --- | --- | --- |
-| `cellpose_1777550975.949237` | 26 MB | Fine-tuned `cyto3` weights (the timestamp suffix is what Cellpose's training CLI auto-assigned). |
+| `cellpose_1777550975.949237` | 26 MB | Self-trained `cyto3` weights (cyto3 + adaptive normalize outputs filtered to 586 pseudo-GT pairs). |
+| `cellpose_1777590610.8133328` | 26 MB | **Quimp-trained** `cyto3` weights (14 biologist-validated cells, 502 image-mask pairs un-shifted to raw frame). Used for the Day 3 cross-validation. |
 
 ## Provenance
 
