@@ -419,7 +419,7 @@ Cohen's d (effect size):
 | Lam ratio KI vs WT | +0.90 | +0.67 |
 | Lam ratio KI vs KO | +0.85 | +0.41 |
 
-The headline lam/cyto ratio for KI is 1.83 in both batches: same number twice on independent data. Both findings (KI is slowest, KI is most polarised) reproduce.
+The KI mean lam/cyto ratio is 1.827 in batch 1 and 1.830 in batch 2: the two means agree within 0.003 on independent groups of 10 cells. With samples this small this is not formal proof, but agreement on independent data is a strong signal that the result is not specific to the cells used during self-training. Both findings (KI is slowest, KI is most polarised) reproduce.
 
 ![Generalisation: same fine-tuned model, two batches](demos/comparison_batch1_vs_batch2.png)
 
@@ -480,7 +480,7 @@ python pipeline/compare_batch1_vs_batch2.py
 - **Migration finding on 30 cells:** WT 1.03, KO 1.06, KI 0.68 μm/min (Cohen's d ~1.4 to 1.7).
 - **Lamellipodia finding on 30 cells:** WT 1.53, KO 1.47, KI 1.83 lam/cyto ratio (Cohen's d ~0.9).
 - **Combined biology reading:** KI cells over-polarise Arp2/3 yet migrate ~35% slower. Broken protrusion-adhesion coordination is more functionally costly than complete deletion. Dominant-negative interpretation.
-- **Generalisation test:** same fine-tuned model on a fresh batch of 30 cells (`2ndUpload/`). Empty rate 1.28%, both findings reproduced (KI lam/cyto ratio identical at 1.83 in both batches).
+- **Generalisation test:** same fine-tuned model on a fresh batch of 30 cells (`2ndUpload/`). Empty rate 1.28% (vs 0.13% on the original cells, 9.95x in relative terms but still under 2% in absolute terms), both findings reproduced. KI mean lam/cyto ratio is 1.827 (batch 1) vs 1.830 (batch 2): means agree within 0.003 on independent groups of 10 cells.
 - Generic mask-comparison utility ready for any future ground-truth annotation.
 
 ## Open questions
