@@ -379,6 +379,62 @@ python pipeline/compare_masks.py \
 
 The utility will pair files by matching relative paths and emit `comparison_per_frame.csv` and `comparison_summary.csv` with the same metrics. Drop-in replacement.
 
+## Generalisation test on a fresh batch (Day 2 EOD)
+
+A second upload of 30 fresh cells (`2ndUpload/`, same 6 categories, 5,862 frames) arrived after the main analysis. We re-ran the full pipeline on it using the same fine-tuned model with no retraining or parameter changes. This is a strong test of generalisation: the model never saw these cells.
+
+### Segmentation quality
+
+| Batch | Cells | Frames | Empty | Empty rate |
+| --- | --- | --- | --- | --- |
+| Batch 1 (original 30) | 30 | 6,221 | 8 | 0.13% |
+| Batch 2 (fresh 30) | 30 | 5,862 | 75 | **1.28%** |
+
+Empty rate is 10× higher on fresh cells but still under 2%. 25 of 30 fresh cells had zero empty masks. Five had non-zero rates, with `ko1/7` the worst (28%). Expected pattern: fine-tuning generalises broadly but does not solve every imaging artefact.
+
+### Findings reproduce
+
+Migration speed (μm/min):
+
+| | Batch 1 | Batch 2 |
+| --- | --- | --- |
+| WT | 1.03 ± 0.33 | 0.95 ± 0.24 |
+| KO | 1.06 ± 0.29 | 1.19 ± 0.43 |
+| **KI** | **0.68 ± 0.08** | **0.72 ± 0.10** |
+
+Lamellipodia / cytoplasm intensity ratio:
+
+| | Batch 1 | Batch 2 |
+| --- | --- | --- |
+| WT | 1.53 ± 0.29 | 1.60 ± 0.37 |
+| KO | 1.47 ± 0.45 | 1.64 ± 0.56 |
+| **KI** | **1.83 ± 0.33** | **1.83 ± 0.27** |
+
+Cohen's d (effect size):
+
+| | Batch 1 | Batch 2 |
+| --- | --- | --- |
+| Migration KI vs WT | -1.40 | -1.22 |
+| Migration KI vs KO | -1.68 | -1.44 |
+| Lam ratio KI vs WT | +0.90 | +0.67 |
+| Lam ratio KI vs KO | +0.85 | +0.41 |
+
+The headline lam/cyto ratio for KI is 1.83 in both batches: same number twice on independent data. Both findings (KI is slowest, KI is most polarised) reproduce.
+
+![Generalisation: same fine-tuned model, two batches](demos/comparison_batch1_vs_batch2.png)
+
+### Reproduce
+
+```bash
+# Segment + center on the new batch
+sbatch pipeline/run_2nd_with_finetuned.sbatch
+# Downstream analyses
+python pipeline/extract_migration_2nd.py
+python pipeline/extract_lamellipodia_2nd.py
+# Side-by-side comparison
+python pipeline/compare_batch1_vs_batch2.py
+```
+
 ## Files
 
 | Path | Description |
@@ -390,33 +446,46 @@ The utility will pair files by matching relative paths and emit `comparison_per_
 | `pipeline/extract_migration.py` | Cell-migration metrics (speed, path, displacement, persistence) from saved centroids |
 | `pipeline/compare_masks.py` | Generic mask-comparison utility (IoU, Dice, Hausdorff, etc.) |
 | `pipeline/demo_cellpose_vs_otsu.py` | Demo runner: Cellpose vs Otsu baseline |
-| `data/categorised_data_manifest.json` | New 30-file dataset manifest with batch labels |
-| `data/per_cell_summary.csv` | Lamellipodia metrics, 30 cells × 12 columns |
-| `data/migration_metrics.csv` | Migration metrics, 30 cells × 16 columns |
+| `pipeline/process_2nd_with_finetuned.py` | Run fine-tuned pipeline on the 2nd-upload batch (generalisation test) |
+| `pipeline/run_2nd_with_finetuned.sbatch` | SLURM submit for the generalisation test |
+| `pipeline/extract_migration_2nd.py` | Migration metrics, 2nd batch |
+| `pipeline/extract_lamellipodia_2nd.py` | Lamellipodia metrics, 2nd batch |
+| `pipeline/compare_batch1_vs_batch2.py` | Side-by-side comparison: per-condition stats + figure |
+| `data/categorised_data_manifest.json` | First 30-file dataset manifest |
+| `data/categorised_data_2nd_manifest.json` | Second 30-file dataset manifest (generalisation batch) |
+| `data/per_cell_summary.csv` | Lamellipodia metrics, batch 1 (30 cells) |
+| `data/lamellipodia_per_cell_summary_2nd_finetuned.csv` | Lamellipodia metrics, batch 2 (30 cells) |
+| `data/migration_metrics.csv` | Migration metrics, batch 1 (30 cells) |
+| `data/migration_metrics_2nd_finetuned.csv` | Migration metrics, batch 2 (30 cells) |
+| `data/batch1_vs_batch2_summary.csv` | Per-condition summary across both batches |
+| `data/cohens_d_batch1_vs_batch2.csv` | Effect-size comparison across both batches |
+| `data/empty_rate_batch1_vs_batch2.csv` | Per-cell segmentation quality across both batches |
 | `data/cellpose_vs_otsu_summary.csv` | Per-cell mask agreement metrics, Cellpose vs Otsu |
 | `demos/*.png` | All demo screenshots embedded in this README |
 
-## Status
+## Status (Day 2 EOD)
 
-- Per-file manifests built for both datasets (original `BioImageHackathon_BEH` and the newer `Categorised_Data`)
-- Three baseline demos running end-to-end (Multi-Otsu static, Multi-Otsu dynamics, Cellpose centering)
-- Cellpose pipeline iterated v1 → v2 → v3 with adaptive normalize
-- v3 generalises cleanly across datasets: 2.81% empty on the original 30-file set, 2.83% on the new 30-file Categorised_Data
-- 28 / 30 files usable on the new dataset; the two failures (`ko1/4` 95% empty and `ko1/8` 50% empty) are both in the KO low batch
-- GPU pipeline runs the full dataset in ~17 minutes on an A5000
-- Lamellipodia-separation prototype on the repo (Edward's percentile method + parameter sweep across both directions). Direction now confirmed: brighter pixels = lamellipodia
-- Biology context aligned with the lead: GFP labels Arp2/3, gene important for protrusion + adhesion coordination, biological process is cell migration
-- **Migration analysis on 30 cells: WT migrates fastest (2.16 μm/min), KO is slower but more persistent (1.41 μm/min, persistence 0.27), KI is slowest with intermediate persistence (1.19 μm/min)** — coherent with the biology framing
+- Per-file manifests built for both datasets (original `BioImageHackathon_BEH` and `Categorised_Data`).
+- Three baseline demos running end-to-end (Multi-Otsu static, Multi-Otsu dynamics, Cellpose centering).
+- Cellpose pipeline iterated v1 → v2 → v3 with adaptive normalize, then self-trained on filtered v3 outputs to produce a fine-tuned cyto3.
+- Empty-mask rate cut from 9.7% (v1) to 0.13% (fine-tuned) on the original 30 cells: a 75-fold reduction.
+- GPU pipeline runs the full dataset in ~10 minutes on an A5000 with the fine-tuned model.
+- Lamellipodia direction confirmed by biology lead: brighter pixels = lamellipodia (Arp2/3 concentrated at the leading edge).
+- Biology context aligned: GFP labels Arp2/3, gene important for protrusion + adhesion coordination, process is cell migration.
+- **Migration finding on 30 cells:** WT 1.03, KO 1.06, KI 0.68 μm/min (Cohen's d ~1.4 to 1.7).
+- **Lamellipodia finding on 30 cells:** WT 1.53, KO 1.47, KI 1.83 lam/cyto ratio (Cohen's d ~0.9).
+- **Combined biology reading:** KI cells over-polarise Arp2/3 yet migrate ~35% slower. Broken protrusion-adhesion coordination is more functionally costly than complete deletion. Dominant-negative interpretation.
+- **Generalisation test:** same fine-tuned model on a fresh batch of 30 cells (`2ndUpload/`). Empty rate 1.28%, both findings reproduced (KI lam/cyto ratio identical at 1.83 in both batches).
+- Generic mask-comparison utility ready for any future ground-truth annotation.
 
-Next: align on the scientific question (what is being imaged, what is perturbed in KO / KI), then add nested intra-cellular layer extraction and trajectory features for the WT vs KO vs KI comparison.
+## Open questions
 
-## Open questions for Badeer
+Most of the original day-1 questions have been answered by the biology lead. Still open:
 
-1. What protein is the GFP fused to?
-2. What is knocked out in KO and knocked in for KI?
-3. Why two intensity batches — two imaging sessions, or different settings?
-4. How many layers do you want segmented (2? 3? 4?)?
-5. What is the most painful manual step we should automate?
+1. What gene specifically is perturbed in KO and KI? Function is described (protrusion + adhesion coordination) but the gene is not named.
+2. Are `ko1/4` and `ko1/8` technical or biological? Both are very dim. `ko1/4` was a 60-frame aborted recording, `ko1/8` stays consistently dim.
+3. Why does `ko1/7` still fail on the fresh batch (28% empty) when 25 of 30 fresh cells worked perfectly?
+4. Should we refine to 3 layers (body / transition zone / lamellipodia) instead of 2?
 
 ## License
 
