@@ -423,6 +423,10 @@ The headline lam/cyto ratio for KI is 1.83 in both batches: same number twice on
 
 ![Generalisation: same fine-tuned model, two batches](demos/comparison_batch1_vs_batch2.png)
 
+Per-cell trajectories on the fresh batch (KI panels in the bottom row cover noticeably shorter ground than WT and KO):
+
+![Migration trajectories on the fresh 30 cells](demos/migration_trajectories_2nd.png)
+
 ### Reproduce
 
 ```bash
@@ -451,6 +455,7 @@ python pipeline/compare_batch1_vs_batch2.py
 | `pipeline/extract_migration_2nd.py` | Migration metrics, 2nd batch |
 | `pipeline/extract_lamellipodia_2nd.py` | Lamellipodia metrics, 2nd batch |
 | `pipeline/compare_batch1_vs_batch2.py` | Side-by-side comparison: per-condition stats + figure |
+| `pipeline/plot_trajectories.py` | Generic 2x3 trajectory plot (one panel per folder) from any `trajectories.json` |
 | `data/categorised_data_manifest.json` | First 30-file dataset manifest |
 | `data/categorised_data_2nd_manifest.json` | Second 30-file dataset manifest (generalisation batch) |
 | `data/per_cell_summary.csv` | Lamellipodia metrics, batch 1 (30 cells) |
