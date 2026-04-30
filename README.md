@@ -1,6 +1,6 @@
 # BioImage Hackathon — BEH Dataset
 
-> **Friday demo slides:** [`slides/index.html`](slides/index.html) (also live at [https://www.dcs.warwick.ac.uk/~u1898019/hackathon-beh/slides/](https://www.dcs.warwick.ac.uk/~u1898019/hackathon-beh/slides/)).
+> **Friday demo slides:** [`slides/friday_demo_slides.pptx`](slides/friday_demo_slides.pptx) (9 slides, three speakers; regenerate with `python pipeline/generate_slides.py`).
 > **Briefing page:** [https://www.dcs.warwick.ac.uk/~u1898019/hackathon-beh/](https://www.dcs.warwick.ac.uk/~u1898019/hackathon-beh/) (full pipeline + findings + caveats).
 
 
@@ -460,6 +460,8 @@ python pipeline/compare_batch1_vs_batch2.py
 | `pipeline/extract_lamellipodia_2nd.py` | Lamellipodia metrics, 2nd batch |
 | `pipeline/compare_batch1_vs_batch2.py` | Side-by-side comparison: per-condition stats + figure |
 | `pipeline/plot_trajectories.py` | Generic 2x3 trajectory plot (one panel per folder) from any `trajectories.json` |
+| `pipeline/generate_slides.py` | Build the Friday demo PPTX (uses python-pptx). Regenerates `slides/friday_demo_slides.pptx`. |
+| `slides/friday_demo_slides.pptx` | 9-slide demo deck: title, biology intro (Badeer), training (Edward), trajectories + lamellipodia (Haili), generalisation (Edward + Haili), tools, caveats, Q&A. |
 | `models/cellpose_1777550975.949237` | Fine-tuned `cyto3` weights (26 MB). See `models/README.md` for provenance and usage. |
 | `data/categorised_data_manifest.json` | First 30-file dataset manifest |
 | `data/categorised_data_2nd_manifest.json` | Second 30-file dataset manifest (generalisation batch) |
