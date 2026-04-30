@@ -1,5 +1,9 @@
 # BioImage Hackathon — BEH Dataset
 
+> **Friday demo slides:** [`slides/index.html`](slides/index.html) (also live at [https://www.dcs.warwick.ac.uk/~u1898019/hackathon-beh/slides/](https://www.dcs.warwick.ac.uk/~u1898019/hackathon-beh/slides/)).
+> **Briefing page:** [https://www.dcs.warwick.ac.uk/~u1898019/hackathon-beh/](https://www.dcs.warwick.ac.uk/~u1898019/hackathon-beh/) (full pipeline + findings + caveats).
+
+
 GPU-accelerated pipeline for nested cell segmentation and dynamics quantification on a 30-file epiflourescense timelapse dataset. Built for the Warwick BioImage Analysis Hackathon (April 2026).
 
 **Live briefing page:** [https://www.dcs.warwick.ac.uk/~u1898019/hackathon-beh/](https://www.dcs.warwick.ac.uk/~u1898019/hackathon-beh/)
