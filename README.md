@@ -255,6 +255,46 @@ Each subplot shows 5 cells. Coloured solid lines: pairs that passed the mask-sta
 - The mask-stability filter currently rejects any pair with IoU < 0.3 — this is a conservative threshold. A handful of cells (notably `wt1/33`, `wt1/12`, `wt2/wt10`, `ko1/8`) have many frames excluded; their reported metrics are based on the surviving valid pairs.
 - No photobleaching correction yet, so intensity-based metrics may carry some imaging artefact even after the centering / size normalisation.
 
+## Mask comparison utility (Day 2 afternoon)
+
+Edward asked for an automated way to compare Cellpose mask coverage against a reference segmentation. We wrote a generic utility (`pipeline/compare_masks.py`) that takes any two parallel mask directories and outputs per-frame metrics:
+
+- **IoU** (Jaccard index)
+- **Dice** coefficient
+- **Centroid distance** (px)
+- **Area difference** and **area ratio**
+- **Boundary IoU** (intersection over union on 1-pixel-thick boundaries only)
+- **Hausdorff 95** (95th-percentile boundary distance, robust to outliers)
+
+### Demo: Cellpose v3 vs whole-image Otsu baseline
+
+To prove the pipeline works while waiting for hand-drawn reference masks, we ran it on Cellpose v3 vs an Otsu-threshold baseline (whole-image threshold, morphological cleanup, keep largest connected component).
+
+| Condition | Mean IoU | Mean Dice | Mean centroid distance | Mean HD95 |
+| --- | --- | --- | --- | --- |
+| WT (N=10) | 0.798 ± 0.070 | 0.886 | 6.9 px | 19.0 px |
+| KO (N=10) | 0.789 ± 0.069 | 0.875 | 8.5 px | 23.7 px |
+| KI (N=10) | 0.850 ± 0.078 | 0.917 | 4.0 px | 14.2 px |
+
+Cellpose and Otsu agree on roughly 80% of the cell area on average across the dataset — Otsu is a respectable baseline for these images. KI cells have the highest agreement (0.85), KO the lowest (0.79). Worst single cell: `ko1/16` at IoU 0.63 with HD95 80 px (mask boundaries strongly disagree).
+
+![Cellpose vs Otsu comparison demo](demos/cellpose_vs_otsu_demo.png)
+
+Six representative cells, mid-frame each. **Green = both masks agree**, **red = Cellpose only**, **blue = Otsu only**. Per-cell IoU / Dice / HD95 in the rightmost panel.
+
+### How to swap in a reference
+
+When real ground-truth masks become available, point the same utility at the new directory:
+
+```bash
+python pipeline/compare_masks.py \
+    --a /path/to/cellpose_masks/ \
+    --b /path/to/reference_masks/ \
+    --out output_dir/
+```
+
+The utility will pair files by matching relative paths and emit `comparison_per_frame.csv` and `comparison_summary.csv` with the same metrics. Drop-in replacement.
+
 ## Files
 
 | Path | Description |
@@ -264,9 +304,12 @@ Each subplot shows 5 cells. Coloured solid lines: pairs that passed the mask-sta
 | `pipeline/otsu_threshold.py` | Lamellipodia separator (Edward) — Otsu / percentile threshold inside cell mask |
 | `pipeline/extract_trajectories.py` | Per-cell lamellipodia / cytoplasm metrics from v3 outputs |
 | `pipeline/extract_migration.py` | Cell-migration metrics (speed, path, displacement, persistence) from saved centroids |
+| `pipeline/compare_masks.py` | Generic mask-comparison utility (IoU, Dice, Hausdorff, etc.) |
+| `pipeline/demo_cellpose_vs_otsu.py` | Demo runner: Cellpose vs Otsu baseline |
 | `data/categorised_data_manifest.json` | New 30-file dataset manifest with batch labels |
 | `data/per_cell_summary.csv` | Lamellipodia metrics, 30 cells × 12 columns |
 | `data/migration_metrics.csv` | Migration metrics, 30 cells × 16 columns |
+| `data/cellpose_vs_otsu_summary.csv` | Per-cell mask agreement metrics, Cellpose vs Otsu |
 | `demos/*.png` | All demo screenshots embedded in this README |
 
 ## Status
