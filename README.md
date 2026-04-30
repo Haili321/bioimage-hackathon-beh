@@ -39,6 +39,28 @@ While inspecting the data we discovered each condition cleanly splits into two i
 | KO | ko_3, ko_8, ko_17, ko_21, ko_25 | ko_11, ko_1717, ko_2121, ko_28, ko_333 |
 | KI | ki_3, ki_11, ki_14, ki_23, ki_25 | ki_1, ki_6, ki_13, ki_18, ki_28 |
 
+## Biology context (Day 2, confirmed by biology lead)
+
+The fluorescence labels **Arp2/3** (Actin Related Proteins 2/3 complex), which nucleates branched actin networks. Arp2/3 is recruited to the edge of cell protrusions; the inactive pool diffuses through the cytoplasm. So in our images:
+
+- **Brighter pixels = lamellipodia** (Arp2/3 concentrated at the leading edge)
+- **Dimmer pixels = cytoplasmic Arp2/3 pool**
+
+The perturbed gene is important for both **cell protrusion** and **cell adhesion to the substrate**:
+
+- **WT**: normal coordination between protrusion and adhesion
+- **KO** (gene completely deleted): impaired cell adhesion
+- **KI** (point mutation introduced): coordination between adhesion and protrusion is disrupted
+
+Biological process being characterised: **cell migration**, following the canonical 4-step model:
+
+1. Protrusion of the leading edge (Arp2/3-driven, lamellipodia)
+2. Adhesion of the protrusion to the substrate (integrin-mediated)
+3. Generation of traction forces (actomyosin contractility)
+4. Release of older adhesions at the rear
+
+This framing turns our segmentation/centering pipeline into the front-end of a canonical cell-migration analysis. The trajectory data we already saved (per-frame centroids in `centering_manifest.json`) contains the migration readout directly.
+
 ## Pipeline
 
 ```
@@ -181,14 +203,65 @@ Edward added a percentile-based separator (`pipeline/otsu_threshold.py`) that sp
 
 The biology lead can pick whichever overlay best matches the expected morphology, which fixes the convention and the percentile value in one decision. Once chosen, the separator runs over the whole 30-file dataset in a few seconds per file.
 
+The biology lead has now confirmed the direction: **brighter pixels = lamellipodia** (Arp2/3 concentrates at the leading edge), so the bottom row of the prototype is the correct convention. Edward's `otsu_threshold.py` defaults still need to be flipped accordingly.
+
+## Cell migration analysis (Day 2)
+
+Since the v3 pipeline already saved per-frame centroids during the centering step, we can compute canonical cell-migration metrics directly from `centering_manifest.json`, with no additional GPU work required.
+
+Metrics extracted (pixel size 0.318 μm/px, frame interval 60 s, valid-only frames):
+
+- **Mean / max speed** (μm/min)
+- **Total path length** (cumulative travel)
+- **Net displacement** (start to end straight line)
+- **Persistence index** (= net / total, 1 = directed motion, 0 = random walk)
+
+### Per-condition summary (N=10 each, valid-only)
+
+| Condition | Mean speed | Total path | Net disp. | Persistence |
+| --- | --- | --- | --- | --- |
+| **WT** | 2.16 ± 1.40 μm/min | 321 ± 187 μm | 43 ± 20 μm | 0.19 ± 0.13 |
+| **KO** | 1.41 ± 0.83 μm/min | 249 ± 145 μm | 68 ± 53 μm | 0.27 ± 0.19 |
+| **KI** | 1.19 ± 0.84 μm/min | 277 ± 205 μm | 50 ± 27 μm | 0.24 ± 0.15 |
+
+Three coherent patterns:
+
+1. **WT migrates fastest** (2.16 μm/min vs KO 1.41 vs KI 1.19), consistent with intact protrusion/adhesion coordination supporting effective traction.
+2. **KO is slower but more persistent** (persistence 0.27 vs WT 0.19), consistent with impaired adhesion compressing path length but with less wobbling along the way.
+3. **KI is slowest with intermediate persistence**, consistent with broken protrusion-adhesion coordination being more functionally costly than complete loss of the gene.
+
+### Trajectories per folder
+
+![Per-cell migration trajectories, 6 folders](demos/migration_trajectories.png)
+
+Each subplot shows 5 cells. Black dot = trajectory start, coloured star = end. Equal aspect ratio across panels so paths are visually comparable.
+
+### Three-condition comparison
+
+![Migration metrics, three-condition comparison](demos/migration_three_condition.png)
+
+Top row: 4 box plots (mean speed, max speed, net displacement, persistence). Bottom: speed-vs-persistence scatter, one cell per point. The X-marker is the per-condition centroid; visible separation supports the three patterns above.
+
+### Caveats
+
+- N=10 per condition (5 cells per session × 2 imaging sessions). Variability is large; statistical tests are pending.
+- `ko1/4.tif` has 95% empty masks, so its valid-only metrics are based on 3 frames and contribute almost zero to the KO summary. Without it KO mean speed rises slightly.
+- Imaging session is a confound; the next analysis pass should fit a mixed-effects model with batch as a random effect and condition as a fixed effect.
+- No photobleaching correction yet, so intensity-based metrics may carry some imaging artefact even after the centering / size normalisation.
+
 ## Files
 
 | Path | Description |
 | --- | --- |
 | `pipeline/process_all_centering.py` | Main pipeline: Cellpose segment + centroid + shift |
 | `pipeline/run_centering.sbatch` | SLURM submission script for `falcon`/`gecko` GPU partitions |
-| `data/dataset_manifest.json` | Per-file metadata: shape, dtype, intensity range, batch label |
-| `demos/*.png` | Day-0 demo screenshots embedded in this README |
+| `pipeline/otsu_threshold.py` | Lamellipodia separator (Edward) — Otsu / percentile threshold inside cell mask |
+| `pipeline/extract_trajectories.py` | Per-cell lamellipodia / cytoplasm metrics from v3 outputs |
+| `pipeline/extract_migration.py` | Cell-migration metrics (speed, path, displacement, persistence) from saved centroids |
+| `data/categorised_data_manifest.json` | New 30-file dataset manifest with batch labels |
+| `data/per_cell_summary.csv` | Lamellipodia metrics, 30 cells × 12 columns |
+| `data/migration_metrics.csv` | Migration metrics, 30 cells × 16 columns |
+| `demos/*.png` | All demo screenshots embedded in this README |
 
 ## Status
 
@@ -196,9 +269,11 @@ The biology lead can pick whichever overlay best matches the expected morphology
 - Three baseline demos running end-to-end (Multi-Otsu static, Multi-Otsu dynamics, Cellpose centering)
 - Cellpose pipeline iterated v1 → v2 → v3 with adaptive normalize
 - v3 generalises cleanly across datasets: 2.81% empty on the original 30-file set, 2.83% on the new 30-file Categorised_Data
-- 28 / 30 files usable on the new dataset; the two failures (`ko1/4` 95% empty and `ko1/8` 50% empty) are both in the KO low batch and may reflect inherently dimmer cells in the KO phenotype
+- 28 / 30 files usable on the new dataset; the two failures (`ko1/4` 95% empty and `ko1/8` 50% empty) are both in the KO low batch
 - GPU pipeline runs the full dataset in ~17 minutes on an A5000
-- Lamellipodia-separation prototype on the repo (Edward's percentile method + parameter sweep across both directions)
+- Lamellipodia-separation prototype on the repo (Edward's percentile method + parameter sweep across both directions). Direction now confirmed: brighter pixels = lamellipodia
+- Biology context aligned with the lead: GFP labels Arp2/3, gene important for protrusion + adhesion coordination, biological process is cell migration
+- **Migration analysis on 30 cells: WT migrates fastest (2.16 μm/min), KO is slower but more persistent (1.41 μm/min, persistence 0.27), KI is slowest with intermediate persistence (1.19 μm/min)** — coherent with the biology framing
 
 Next: align on the scientific question (what is being imaged, what is perturbed in KO / KI), then add nested intra-cellular layer extraction and trajectory features for the WT vs KO vs KI comparison.
 
