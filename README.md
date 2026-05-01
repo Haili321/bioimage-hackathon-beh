@@ -482,6 +482,12 @@ Quimp model is slightly less aggressive on Batch 1 (only 14 of 30 cells were in 
 
 KI is the slowest condition under all four model × batch combinations. Cohen's d shifts from "very large" (-1.40 self_b1) to "medium-large" (-0.71 quimp_b1) because Quimp's larger boundary makes the centroid more sensitive to halo shape changes, which inflates within-condition variance. The direction of the finding is preserved.
 
+### Visual side-by-side
+
+![self-trained vs Quimp-trained masks on the same cells](demos/self_vs_quimp_masks.png)
+
+Six representative cells, mid-frame each, raw-frame overlay. Blue = self-trained mask, red = Quimp-trained mask, green = both. The pattern is consistent: the self-trained model produces a tighter cell-body mask, the Quimp-trained model adds a halo ring around it (q/s area ratio ~1.17 across the 30 cells of batch 1). Despite the boundary-philosophy difference, both models land on the same cell and the downstream lam/cyto ratio is essentially unchanged (1.83 vs 1.88 for KI), because the percentile-50 split inside the mask separates the bright leading-edge signal from dim interior signal regardless of where the boundary is drawn.
+
 ### Conclusion
 
 The KI dominant-negative interpretation is **not an artefact of the self-training pseudo-ground-truth**. The lamellipodia finding survives a switch to biologist-validated training data with essentially the same Cohen's d. The migration finding survives in direction and ranking; effect size is somewhat smaller because of boundary-philosophy differences.
@@ -531,6 +537,7 @@ python pipeline/compare_quimp_vs_cellpose.py v3
 | `pipeline/compare_self_vs_quimp.py` | Side-by-side comparison: self-trained vs Quimp-trained, both batches. |
 | `pipeline/compare_quimp_vs_cellpose.py` | Per-frame IoU/Dice/HD95 between Cellpose mask and Quimp reference. |
 | `pipeline/inspect_quimp_mismatch.py` | Visual inspection figure for low-IoU cells (frame-level overlay). |
+| `pipeline/visualize_self_vs_quimp_masks.py` | Side-by-side figure: 6 cells, raw-frame overlay of self-trained (blue) and Quimp-trained (red) masks. |
 | `models/cellpose_1777550975.949237` | Self-trained `cyto3` weights (26 MB). See `models/README.md`. |
 | `models/cellpose_1777590610.8133328` | Quimp-trained `cyto3` weights (26 MB). 14 cells × 502 pairs from biologist-validated reference. |
 | `data/categorised_data_manifest.json` | First 30-file dataset manifest |
