@@ -281,7 +281,7 @@ def refine_body_and_lamellipodia(
         np.array(cleaned_lam)
     )
 
-path = "wt_31"
+'''path = "ki_25"
 
 centered_images = read_tiff_stack("data/output/%s/centered_stack.tif"%(path))
 masks_all = read_tiff_stack("data/output/%s/mask_stack.tif"%(path))
@@ -300,7 +300,7 @@ cell_body, lamellipodia, thresholds = separate_body_lamellipodia_percentile(clea
 #cell_body, lamellipodia, thresholds = separate_cell_body_lamellipodia(cleaned_images, aligned_masks)
 
 
-cleaned_body, cleaned_lam = refine_body_and_lamellipodia(cell_body, lamellipodia, closing_radius=10)
+cleaned_body, cleaned_lam = refine_body_and_lamellipodia(cell_body, lamellipodia, closing_radius=50)
 
 
 lower = 20
@@ -315,4 +315,4 @@ show_body_lamellipodia_overlays(
 
 tiff.imwrite("data/output/%s/cell_body.tif"%(path), cleaned_body.astype('uint16'))
 tiff.imwrite("data/output/%s/lamellipodia.tif"%(path), cleaned_lam.astype('uint16'))
-tiff.imwrite("data/output/%s/cleaned_images.tif"%(path), cleaned_images.astype('uint16'))
+tiff.imwrite("data/output/%s/cleaned_images.tif"%(path), cleaned_images.astype('uint16'))'''
