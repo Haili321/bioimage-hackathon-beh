@@ -41,6 +41,7 @@ for centered_dir in JOBS:
 
     records = []
     trajectories = {}
+    PIXEL_SIZE_UM_LOCAL = PIXEL_SIZE_UM
     for rel_path, info in manifest.items():
         centers = np.array(info['centers'], dtype=np.float64)
         T = info['shape'][0]
@@ -86,9 +87,24 @@ for centered_dir in JOBS:
             'total_path_um': path_um, 'net_disp_um': net_um, 'persistence': persistence,
         })
 
+        # trajectories.json (compatible with plot_trajectories.py)
+        if n_pairs > 0:
+            anchor_idx = int(np.where(valid_frames)[0][0])
+            traj_um = (centers - centers[anchor_idx]) * PIXEL_SIZE_UM
+        else:
+            traj_um = (centers - centers[0]) * PIXEL_SIZE_UM
+        trajectories[cell_id] = {
+            'traj_um': traj_um.tolist(),
+            'valid': valid_frames.tolist(),
+            'pair_valid': pair_valid.tolist(),
+            'condition': cond, 'category': cat, 'batch': batch, 'folder': folder,
+        }
+
     with open(out_dir / 'migration_metrics.csv', 'w', newline='') as f:
         w = csv.DictWriter(f, fieldnames=list(records[0].keys())); w.writeheader(); w.writerows(records)
-    print(f'[done] {len(records)} cells -> {out_dir / "migration_metrics.csv"}')
+    with open(out_dir / 'trajectories.json', 'w') as f:
+        json.dump(trajectories, f)
+    print(f'[done] {len(records)} cells -> {out_dir / "migration_metrics.csv"} + trajectories.json')
 
     print('Per-condition:')
     for cond in ['wt', 'ko', 'ki']:
